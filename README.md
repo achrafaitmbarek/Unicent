@@ -27,10 +27,8 @@ Unicent is a financial management application that integrates bank data analysis
 - **Containerization**: Docker
 
 ## 📁 Project Structure
-The following is the structure of the Unicent project:
 
 ```bash
-(should update this).. 
 unicent/
 ├── prisma/
 │   ├── migrations/
@@ -54,16 +52,17 @@ unicent/
 ├── next.config.js
 ├── package.json
 └── tsconfig.json
-````
+```
 ## 🔐 Authentication
 
-Authentication is handled using NextAuth.js v5 with the following setup:
+Authentication is handled using **NextAuth.js v5** with the following setup:
 
-- Supabase as the authentication provider
-- Custom middleware for route protection
-- Prisma adapter for database integration
+- **Supabase** as the authentication provider
+- **Custom middleware** for route protection
+- **Prisma adapter** for database integration
 
-Key files:
+### Key files:
+
 - `src/auth.ts`: Main NextAuth configuration
 - `src/middleware.ts`: Custom middleware for route protection
 
@@ -78,3 +77,36 @@ To start the development environment:
 
 ```bash
 npm run docker:dev
+## 🚀 Getting Started
+
+1. Clone the repository.
+   
+2. Copy `.env.example` to `.env.local` and fill in the required environment variables.
+   
+3. Run `npm install` to install the dependencies.
+   
+4. Start the Docker environment:
+
+   ```bash
+   npm run docker:dev
+````
+Open [http://localhost:3000](http://localhost:3000) in your browser to view the app.
+
+## 📚 API Documentation
+
+- `/api/auth/*`: NextAuth.js authentication routes
+- `/api/powens/connect-bank`: Connect a new bank account
+- `/api/powens/fetch-transactions`: Fetch transactions for connected accounts
+- `/api/gpt/analyze-transactions`: Analyze transactions using GPT
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for more information on how to get started.
+
+## 📝 License
+
+This project is [MIT licensed](LICENSE).
+
+---
+
+This structure improves readability and makes it easier to follow the instructions for getting started, using the API, contributing, and understanding the licensing.
