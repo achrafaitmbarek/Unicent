@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Unicent 🦄
 
-## Getting Started
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-181818?style=for-the-badge&logo=supabase&logoColor=white)
+![NextAuth.js](https://img.shields.io/badge/NextAuth.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-First, run the development server:
+Unicent is a financial management application that integrates bank data analysis with AI-powered insights.
+
+## 🚀 Features
+
+- User authentication with NextAuth v5
+- Bank account integration using Powens API
+- Transaction analysis with GPT API
+- Responsive dashboard for financial overview
+- Docker-based development environment
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 13+ with App Router
+- **Language**: TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: NextAuth.js v5 with Supabase provider
+- **API Integrations**: Powens (banking data), OpenAI GPT (transaction analysis)
+- **Containerization**: Docker
+
+## 📁 Project Structure
+The following is the structure of the Unicent project:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+(should update this).. 
+unicent/
+├── prisma/
+│   ├── migrations/
+│   └── schema.prisma
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   ├── auth/
+│   │   ├── dashboard/
+│   │   └── ...
+│   ├── components/
+│   ├── hooks/
+│   ├── lib/
+│   ├── types/
+│   └── utils/
+├── public/
+├── .env
+├── .env.local
+├── docker-compose.yml
+├── Dockerfile
+├── next.config.js
+├── package.json
+└── tsconfig.json
+````
+## 🔐 Authentication
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Authentication is handled using NextAuth.js v5 with the following setup:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Supabase as the authentication provider
+- Custom middleware for route protection
+- Prisma adapter for database integration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Key files:
+- `src/auth.ts`: Main NextAuth configuration
+- `src/middleware.ts`: Custom middleware for route protection
 
-## Learn More
+## 🐳 Docker Setup
 
-To learn more about Next.js, take a look at the following resources:
+The project uses Docker for consistent development environments:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `Dockerfile`: Defines the container for the Next.js application
+- `docker-compose.yml`: Orchestrates the app and database services
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+To start the development environment:
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run docker:dev
