@@ -26,7 +26,7 @@ Unicent is a financial management application that integrates bank data analysis
 - **API Integrations**: Powens (banking data), OpenAI GPT (transaction analysis)
 - **Containerization**: Docker
 
-## 📁 Project Structure
+## 📁 Project Structure(in progress)
 
 ```bash
 unicent/
@@ -71,42 +71,73 @@ Authentication is handled using **NextAuth.js v5** with the following setup:
 The project uses Docker for consistent development environments:
 
 - `Dockerfile`: Defines the container for the Next.js application
-- `docker-compose.yml`: Orchestrates the app and database services
+- `docker-compose.yml`: Orchestrates the app, database, and Adminer services
 
-To start the development environment:
+### Services:
+
+1. **PostgreSQL Database**:
+   - Image: `postgres:13`
+   - Exposed port: 5432
+   - Configurable via environment variables
+
+2. **Adminer**:
+   - Web-based database management tool
+   - Accessible at `http://localhost:8080`
+   - Uses custom theme: pepa-linha
+
+3. **Next.js Application**:
+   - Custom build from `Dockerfile`
+   - Exposed ports: 3000 (Next.js app) and 5555 (Prisma Studio)
+
+### Environment Variables:
+
+Create a `.env` file in the project root with the following variables:
+
+```bash 
+#.env:example:
+
+POSTGRES_USER=your_username
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=your_database_name
+DATABASE_URL="postgresql://your_username:your_password@db:5432/your_database_name?schema=public"
+````
+Replace `your_username`, `your_password`, and `your_database_name` with your preferred values.
+
+### Starting the Development Environment:
+
+1. Ensure Docker and Docker Compose are installed on your system.
+
+2. Build and start the containers:
+   ```bash
+   docker-compose up --build
+### Access the services:
+
+- Next.js app: `http://localhost:3000`
+- Prisma Studio: `http://localhost:5555`
+- Adminer: `http://localhost:8080`
+
+### To stop the containers:
 
 ```bash
-npm run docker:dev
-## 🚀 Getting Started
+docker-compose down
+```
+### Database Management with Adminer:
 
-1. Clone the repository.
-   
-2. Copy `.env.example` to `.env.local` and fill in the required environment variables.
-   
-3. Run `npm install` to install the dependencies.
-   
-4. Start the Docker environment:
+1. Open `http://localhost:8080` in your browser
+2. Log in with the following details:
+   - System: PostgreSQL
+   - Server: db
+   - Username: [POSTGRES_USER from .env]
+   - Password: [POSTGRES_PASSWORD from .env]
+   - Database: [POSTGRES_DB from .env]
 
-   ```bash
-   npm run docker:dev
-````
-Open [http://localhost:3000](http://localhost:3000) in your browser to view the app.
+### Notes:
 
-## 📚 API Documentation
+- The PostgreSQL data is persisted in a named volume `postgres_data`
+- The application code is mounted as a volume, allowing for live reloading during development
+- Prisma Studio is available for direct database manipulation and visualization
 
-- `/api/auth/*`: NextAuth.js authentication routes
-- `/api/powens/connect-bank`: Connect a new bank account
-- `/api/powens/fetch-transactions`: Fetch transactions for connected accounts
-- `/api/gpt/analyze-transactions`: Analyze transactions using GPT
+This setup provides a complete development environment with database, admin tools, and the Next.js application, all containerized for consistency across different development machines.
+```bash
+You can now use this section for your documentation as needed.
 
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for more information on how to get started.
-
-## 📝 License
-
-This project is [MIT licensed](LICENSE).
-
----
-
-This structure improves readability and makes it easier to follow the instructions for getting started, using the API, contributing, and understanding the licensing.
