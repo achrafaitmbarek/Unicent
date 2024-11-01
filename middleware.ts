@@ -1,29 +1,39 @@
-// import { NextResponse } from 'next/server'
-// import type { NextRequest } from 'next/server'
-// import { auth } from './auth'
+import { auth } from "@/auth";
 
-// export default auth((req) => {
-//   const isAuthPageRoute = req.nextUrl.pathname.startsWith('/login') || 
-//                           req.nextUrl.pathname.startsWith('/register')
-//   const isDashboardRoute = req.nextUrl.pathname.startsWith('/dashboard')
-//   const isApiRoute = req.nextUrl.pathname.startsWith('/api')
+export default auth((req) => {
+  const url = new URL(req.nextUrl);
 
- 
-//   if (isDashboardRoute && !req.auth) {
-//     return NextResponse.redirect(new URL('/login', req.url))
-//   }
+  if (req.auth) {
+    // If authenticated and accessing the root, redirect to /dashboard
+    if (url.pathname === "/" || url.pathname === "/auth/login") {
+      const dashboardUrl = new URL("/dashboard", req.nextUrl.origin);
+      return Response.redirect(dashboardUrl);
+    }
+  } else {
+    // If not authenticated and accessing /dashboard, redirect to /auth/login
+    if (url.pathname === "/dashboard") {
+      const loginUrl = new URL("/auth/login", req.nextUrl.origin);
+      return Response.redirect(loginUrl);
+    }
 
-//   if (isAuthPageRoute && req.auth) {
-//     return NextResponse.redirect(new URL('/dashboard', req.url))
-//   }
+    // If not authenticated and accessing any other path except root and /auth/login, redirect to the root
+    if (url.pathname !== "/" && url.pathname !== "/auth/login") {
+      const rootUrl = new URL("/", req.nextUrl.origin);
+      return Response.redirect(rootUrl);
+    }
+  }
+});
 
-//   if (isApiRoute && !req.auth) {
-//     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-//   }
-//   return NextResponse.next()
-// })
-
-
-// export const config = {
-//   matcher: ['/dashboard/:path*', '/api/:path*', '/login', '/register'],
-// }
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder assets
+     * - api auth routes
+     */
+    '/((?!_next/static|_next/image|favicon.ico|public/|api/auth/).*)',
+  ]
+};

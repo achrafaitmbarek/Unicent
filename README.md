@@ -25,6 +25,11 @@ Unicent is a financial management application that integrates bank data analysis
 - **Authentication**: NextAuth.js v5 with Supabase provider
 - **API Integrations**: Powens (banking data), OpenAI GPT (transaction analysis)
 - **Containerization**: Docker
+  
+## 🎨 Design
+
+You can view the wireframes and design on Figma [here](https://www.figma.com/design/t3U6biDnxSgbhiWyM1NzZi/PFE-WIREFRAMES%2FDESIGN?node-id=0-1&t=m0IwU8JKGkDuLG3v-1).
+
 
 ## 📁 Project Structure(in progress)
 
@@ -35,23 +40,34 @@ unicent/
 │   └── schema.prisma
 ├── src/
 │   ├── app/
-│   │   ├── api/
-│   │   ├── auth/
-│   │   ├── dashboard/
-│   │   └── ...
-│   ├── components/
-│   ├── hooks/
-│   ├── lib/
-│   ├── types/
-│   └── utils/
-├── public/
-├── .env
-├── .env.local
-├── docker-compose.yml
-├── Dockerfile
-├── next.config.js
-├── package.json
-└── tsconfig.json
+│   │   ├── api/               # API routes
+│   │   ├── auth/              # Authentication module
+│   │   ├── dashboard/         # Dashboard interface and components
+│   │   ├── fonts/             # Custom font assets
+│   │   ├── favicon.ico        # Favicon file
+│   │   ├── globals.css        # Global CSS styles
+│   │   ├── layout.tsx         # Layout component
+│   │   └── page.tsx           # Main page component
+│   ├── assets/                # Static assets like images, icons, etc.
+│   ├── components/            # Reusable UI components
+│   ├── data/                  # Mock data or static data files
+│   ├── hooks/                 # Custom React hooks
+│   ├── lib/                   # Utility libraries or helpers
+│   ├── schemas/               # Data schemas, validations
+│   ├── services/              # External services, API calls, etc.
+│   ├── types/                 # TypeScript types and interfaces
+│   └── utils/                 # General utility functions
+├── public/                    # Public assets accessible in build
+├── .env                       # Environment variables
+├── .env.local                 # Local environment variables
+├── docker-compose.yml         # Docker Compose configuration
+├── Dockerfile                 # Dockerfile for containerizing the app
+├── next.config.js             # Next.js configuration
+├── package.json               # Project dependencies and scripts
+├── postcss.config.js          # PostCSS configuration for styling
+├── README.md                  # Project README
+├── tailwind.config.js         # Tailwind CSS configuration
+└── tsconfig.json              # TypeScript configuration
 ```
 ## 🔐 Authentication
 
