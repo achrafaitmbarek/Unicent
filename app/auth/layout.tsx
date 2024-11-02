@@ -1,12 +1,13 @@
 
 "use client"
 import Logo from '@/assets/Logo.png'
-import LoginAvatar from '@/assets/Login_avatar.png'
+import LoginAvatar from '@/assets/login_avatar.png'
 import CointLogo from '@/assets/CointLogo.png'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+
 export default function Layout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
     const buttonConfig = {
