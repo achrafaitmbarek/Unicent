@@ -19,11 +19,8 @@ const DashboardPage = async () => {
 
     return (
         <div>
-            {user.role === "ADMIN" ? <h1>Hello in Admin Dashboard</h1> : <h1>Hello in Agent Dashboard</h1>}
-            <p>User Role: {user.role}</p>
-            <pre>{JSON.stringify(session, null, 2)}</pre>
-            <pre>{JSON.stringify(user, null, 4)}</pre> {/* Display fetched user data */}
-            <p>{user.role}</p>
+            <h1>Welcome</h1>
+            <p>Email: </p>
         </div>
     );
 }

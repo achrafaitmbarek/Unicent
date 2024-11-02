@@ -5,7 +5,7 @@ export default auth((req) => {
 
   if (req.auth) {
     // If authenticated and accessing the root, redirect to /dashboard
-    if (url.pathname === "/" || url.pathname === "/auth/login") {
+    if (url.pathname === "/" || url.pathname === "/auth/login"|| url.pathname === "/auth/register") {
       const dashboardUrl = new URL("/dashboard", req.nextUrl.origin);
       return Response.redirect(dashboardUrl);
     }
@@ -17,8 +17,9 @@ export default auth((req) => {
     }
 
     // If not authenticated and accessing any other path except root and /auth/login, redirect to the root
-    if (url.pathname !== "/" && url.pathname !== "/auth/login") {
-      const rootUrl = new URL("/", req.nextUrl.origin);
+    //url.pathname !== "/" &&
+    if ( url.pathname !== "/auth/login" && url.pathname !== "/auth/register") {
+      const rootUrl = new URL("/auth/login", req.nextUrl.origin);
       return Response.redirect(rootUrl);
     }
   }
