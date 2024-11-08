@@ -23,6 +23,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         text: 'Sign In',
         href: '/auth/login'
     }
+
+    let message;
+    let linkText;
+    let linkHref;
+
+    if (pathname === '/auth/login') {
+        message = "New here?";
+        linkText = "Register";
+        linkHref = "/auth/register";
+    } else if (pathname === '/auth/register') {
+        message = "I'm already a member?";
+        linkText = "Login";
+        linkHref = "/auth/login";
+    } else {
+        message = "Default message"; // Fallback message if needed
+        linkText = "Default link text";
+        linkHref = "/";
+    }
     return (
         <div className="flex h-screen flex-col md:flex-row md:overflow-hidden">
             <div className="h-screen w-full mx-auto flex flex-row ">
@@ -73,6 +91,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     </div>
                     <div className="flex-1 flex items-center justify-center">
                         {children}
+                    </div>
+                    <div className="text-center mt-auto mb-6">
+                        <p className="text-gray-600 font-medium">
+                            {message} {''}
+                            <Link href={linkHref} className="underline font-medium">
+                                {linkText}
+                            </Link>
+                        </p>
                     </div>
                 </div>
 

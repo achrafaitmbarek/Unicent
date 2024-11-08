@@ -1,4 +1,4 @@
-import { Calendar, Home, Inbox, Settings, Briefcase, Book, Building, Phone } from "lucide-react"
+import { Brain, Calendar, Home, Inbox, Settings, Briefcase, Book, Building, Phone } from "lucide-react"
 
 import {
     Sidebar,
@@ -15,47 +15,64 @@ import { Button } from "../ui/button";
 import { signOut } from "@/auth";
 
 // Menu items.
+
 const items = [
     {
         title: "Home",
         url: "/dashboard",
         icon: Home,
+        variant: "ghost"
     },
     {
-        title: "Jobs",
-        url: "/dashboard/jobs",
-        icon: Briefcase,
+        title: "AI Services",
+        collapsible: true,
+        icon: Brain,
+        items: [
+            {
+                title: "Jobs",
+                url: "/dashboard/jobs",
+                icon: Briefcase,
+            },
+            {
+                title: "Blogs",
+                url: "/dashboard/blogs",
+                icon: Book,
+            },
+            {
+                title: "Real Estate",
+                url: "/dashboard/real-estate",
+                icon: Building,
+            }
+        ]
     },
     {
-        title: "Blogs",
-        url: "/dashboard/blogs",
-        icon: Book,
-    },
-    {
-        title: "Real Estate",
-        url: "/dashboard/real-estate",
-        icon: Building,
-    },
-    {
-        title: "Contacts",
-        url: "/dashboard/contacts",
-        icon: Phone,
-    },
-    {
-        title: "Inbox",
-        url: "#",
+        title: "Communication",
+        collapsible: true,
         icon: Inbox,
-    },
-    {
-        title: "Calendar",
-        url: "#",
-        icon: Calendar,
+        items: [
+            {
+                title: "Contacts",
+                url: "/dashboard/contacts",
+                icon: Phone,
+            },
+            {
+                title: "Inbox",
+                url: "#",
+                icon: Inbox,
+            },
+            {
+                title: "Calendar",
+                url: "#",
+                icon: Calendar,
+            },
+        ]
     },
     {
         title: "Settings",
         url: "#",
         icon: Settings,
-    },
+        variant: "ghost"
+    }
 ];
 
 export function AppSidebar() {
@@ -69,12 +86,12 @@ export function AppSidebar() {
                             {items.map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton asChild>
-                                        <Link href={item.url}>
+                                        {item.url && <Link href={item.url}>
                                             <item.icon />
                                             <span>
                                                 {item.title}
                                             </span>
-                                        </Link>
+                                        </Link>}
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             ))}

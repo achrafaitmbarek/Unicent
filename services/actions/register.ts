@@ -3,35 +3,43 @@
 import * as z from "zod"
 import { RegisterSchema } from "@/schemas"
 import { signIn } from "@/auth"
-// import { prisma } from "@/lib/prisma"
 import { getUserByEmail } from "@/data/user"
+import { prisma } from "@/lib/prisma"
+
+
 
 export const register = async (values: z.infer<typeof RegisterSchema>) => {
-    // Client-side validation can always be bypassed, that's why we need to validate on the server side as well
     const validatedFields = RegisterSchema.safeParse(values);
 
     if (!validatedFields.success) {
         return { error: 'Invalid fields!' };
     }
 
-    const { email } = validatedFields.data;
+    const { email, name } = validatedFields.data;
+
     try {
-    const existingUser = await getUserByEmail(email)
+        const existingUser = await getUserByEmail(email);
 
+        if (existingUser) {
+            return { error: 'User already exists',redirect: '/auth/login'  };
+        }
 
-    if (existingUser) {
-        return { error: 'User already exists' };
-    }
+        // Save temporary registration data
+        await prisma.user.create({
+            data: { email, name },
+        });
 
+        await signIn("resend", { email, redirect: false });
 
-        await signIn("resend", {email: values.email,
-                                redirect:false});
-        
-        return {
-            success: 'Please check your email for the verification link',
-        };
+        return { success: 'Please check your email for the verification link' };
     } catch (error) {
-        console.error('Error during sign-in:', error);
-        return { error: 'An error occurred during sign-in' };
+        console.error('Error during registration:', error);
+        return { error: 'An error occurred during registration' };
     }
+};
+
+export const  handleGoogleSignIn = async () => {
+    await signIn("google", {
+        callbackUrl: "/dashboard"
+    })
 }

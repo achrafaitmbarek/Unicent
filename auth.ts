@@ -6,9 +6,33 @@ import {prisma} from "@/lib/prisma"
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
-  pages:{
-    error: "/auth/error",
-    // verifyRequest: "/auth/verify-request",
+  pages: {
+    signIn: '/auth/login',
+    signOut: '/auth/logout',
+    error: '/auth/error',
   },
-  session:{strategy:"jwt"}
+  session:{
+    strategy: 'jwt',
+  },
+  events:{
+    async linkAccount ({user}){
+      await prisma.user.update({
+        where:{id:user.id},
+        data:{emailVerified:new Date()}
+      })
+    }
+  },
+  callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Handle redirect URLs
+      if (url.startsWith(baseUrl)) return url;
+      // Allows relative callback URLs
+      else if (url.startsWith("/")) return new URL(url, baseUrl).toString();
+      return baseUrl;
+    },
+    // Add other callbacks as needed
+    async signIn({}) {
+      return true;
+  },
+  },
 })
