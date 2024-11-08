@@ -67,6 +67,7 @@ export const LoginForm = () => {
             setError("");
             await handleGoogleSignIn();
         } catch (error) {
+            console.error("Error during Google sign in:", error);
             setError("An error occurred with Google sign in");
         } finally {
             setIsGoogleLoading(false);

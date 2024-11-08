@@ -1,7 +1,6 @@
 import Resend from "next-auth/providers/resend";
 import type { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
-import sendVerificationRequest from "@/utils/authSendRequest";
 
 export default {
     providers: [
@@ -19,7 +18,6 @@ export default {
                     pass: process.env.AUTH_RESEND_KEY,
                 }
             },
-            sendVerificationRequest
         })
     ]
 } satisfies NextAuthConfig;

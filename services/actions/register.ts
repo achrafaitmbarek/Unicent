@@ -21,6 +21,10 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
         const existingUser = await getUserByEmail(email);
 
         if (existingUser) {
+            const googleAccount = existingUser.accounts.find((account) => account.provider === "google");
+            if (googleAccount) {
+                return { error: 'User exists with Google. Please log in with Google.' };
+            }
             return { error: 'User already exists',redirect: '/auth/login'  };
         }
 
