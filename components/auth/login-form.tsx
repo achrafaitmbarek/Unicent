@@ -3,7 +3,7 @@ import * as z from "zod";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
+import { Suspense, useState, useTransition } from "react";
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 
@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 
 
-export const LoginForm = () => {
+const RegisterFormContent = () => {
 
     const searchParams = useSearchParams();
     const urlError = searchParams.get("error") === "OAuthAccountNotLinked"
@@ -138,5 +138,15 @@ export const LoginForm = () => {
                 </p>
             </div>
         </div>
+    )
+}
+
+export const LoginForm = () => {
+    return (
+        <Suspense fallback={<div className="w-full flex justify-center">
+            <div className="spinner"></div>
+        </div>}>
+            <RegisterFormContent />
+        </Suspense>
     )
 }

@@ -3,7 +3,7 @@ import * as z from "zod";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
+import { Suspense, useState, useTransition } from "react";
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 
@@ -17,7 +17,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useRouter, useSearchParams } from "next/navigation";
 
 
-export const RegisterForm = () => {
+const RegisterFormContent = () => {
     const searchParams = useSearchParams();
     const urlError = searchParams.get("error") === "OAuthAccountNotLinked"
         ? "Your account is not linked with Google. Please sign in with Email"
@@ -131,5 +131,15 @@ export const RegisterForm = () => {
                 </p>
             </div>
         </div>
+    )
+}
+
+export const RegisterForm = () => {
+    return (
+        <Suspense fallback={<div className="w-full flex justify-center">
+            <div className="spinner"></div>
+        </div>}>
+            <RegisterFormContent />
+        </Suspense>
     )
 }
