@@ -1,9 +1,9 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
- 
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -51,10 +51,3 @@ model VerificationToken {
   @@id([identifier, token])
 }
  
-// prisma/schema.prisma
-model PendingRegistration {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  createdAt DateTime @default(now())
-}

@@ -1,6 +1,6 @@
 
 "use client"
-import Logo from '@/assets/Logo.png'
+import Logo from '@/assets/TypoLogo.png'
 import LoginAvatar from '@/assets/login_avatar.png'
 import CointLogo from '@/assets/CointLogo.png'
 import Image from 'next/image'
