@@ -10,7 +10,6 @@ import {
 
 import avatar from "@/assets/avatars/Erick.png";
 import { auth, signOut } from "@/auth";
-import LaunchCard from "./launch-card";
 
 
 type Props = {};
