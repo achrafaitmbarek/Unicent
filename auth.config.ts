@@ -10,7 +10,7 @@ export default {
             clientSecret: process.env.AUTH_GOOGLE_SECRET,
         }),
         Resend({
-            from: "onboarding@resend.dev", // Use Resend's default sender
+            from: "notifications@eloken.com", // Use Resend's default sender
             server: {
                 host: 'smtp.resend.com',
                 port: 465,

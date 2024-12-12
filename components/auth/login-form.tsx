@@ -56,6 +56,9 @@ const RegisterFormContent = () => {
                         }
                     } else if (data.success) {
                         setSuccess(data.success);
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 3000);
                     }
                 })
         })
