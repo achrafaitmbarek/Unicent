@@ -9,7 +9,7 @@ test.describe('Auth flow', () => {
     const uniqueEmail = `john.doe+${timestamp}@example.com`
 
 
-    await page.goto('http://localhost:3000/auth/register')
+    await page.goto('http://https://unicent.vercel.app/auth/register')
 
 
     await page.fill('input[name="name"]', 'John Doe')
@@ -35,7 +35,7 @@ test.describe('Auth flow', () => {
     const uniqueEmail = `john.doe+${timestamp}@example.com`
 
 
-    await page.goto('http://localhost:3000/auth/register')
+    await page.goto('http://https://unicent.vercel.app/auth/register')
     await page.fill('input[name="name"]', 'John Doe')
     await page.fill('input[name="email"]', uniqueEmail)
     await page.click('button[type="submit"]')
@@ -45,7 +45,7 @@ test.describe('Auth flow', () => {
       .toBeVisible({ timeout: 25000 })
 
 
-    await page.goto('http://localhost:3000/auth/login')
+    await page.goto('http://https://unicent.vercel.app/auth/login')
 
 
     await page.fill('input[name="email"]', uniqueEmail)
