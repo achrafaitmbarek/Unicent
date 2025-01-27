@@ -1,183 +1,137 @@
-# Unicent 🦄
+# Bank Data Synchronization
 
-![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-181818?style=for-the-badge&logo=supabase&logoColor=white)
-![NextAuth.js](https://img.shields.io/badge/NextAuth.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+This module implements real-time bank data synchronization using the Powens API, enabling automatic tracking and categorization of financial transactions for authenticated users within Unicent.
 
-Unicent is a financial management application that integrates bank data analysis with AI-powered insights.
+## Overview
 
-## 🚀 Features
+The bank data synchronization feature serves as a core component of Unicent's financial management capabilities. It establishes secure connections with users' bank accounts through Powens API, regularly fetches transaction data, and maintains an up-to-date record of financial activities in our database.
 
-- User authentication with NextAuth v5
-- Bank account integration using Powens API
-- Transaction analysis with GPT API
-- Responsive dashboard for financial overview
-- Docker-based development environment
+## Key Features
 
-## 🛠️ Tech Stack
+- Secure bank account connection management
+- Automated transaction synchronization
+- Real-time balance updates
+- Transaction categorization and storage
+- Multi-account support per user
+- Error handling and retry mechanisms
+- Synchronization status monitoring
 
-- **Frontend**: Next.js 13+ with App Router
-- **Language**: TypeScript
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: NextAuth.js v5 with Prisma provider
-- **API Integrations**: Powens (banking data), OpenAI GPT (transaction analysis)
-- **Containerization**: Docker (Local development)
+## Technical Architecture
+
+### Data Flow
+
+1. User authenticates and initiates bank connection
+2. Powens API handles secure bank authentication
+3. System receives transaction data through webhooks
+4. Transactions are processed and stored in PostgreSQL
+5. Data becomes available in user's dashboard
+
+### Database Schema
+
+```prisma
+model BankConnection {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id")
+  powensId      String    @unique @map("powens_id")
+  status        String    
+  lastSync      DateTime? @map("last_sync")
+  accounts      BankAccount[]
+  user          User      @relation(fields: [userId], references: [id])
+}
+
+model BankAccount {
+  id              String    @id @default(cuid())
+  connectionId    String    @map("connection_id")
+  accountNumber   String    @map("account_number")
+  name           String
+  balance        Decimal
+  currency       String
+  transactions   Transaction[]
+  connection     BankConnection @relation(fields: [connectionId], references: [id])
+}
+
+model Transaction {
+  id            String    @id @default(cuid())
+  accountId     String    @map("account_id")
+  amount        Decimal
+  date          DateTime
+  description   String
+  category      String?
+  type          TransactionType
+  account       BankAccount @relation(fields: [accountId], references: [id])
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+```
+
+## Implementation Details
+
+### Required Environment Variables
+
+```bash
+POWENS_CLIENT_ID=your_client_id
+POWENS_CLIENT_SECRET=your_client_secret
+POWENS_API_URL=https://api.powens.com
+```
+
+### API Integration
+
+The feature implements the following Powens API endpoints:
+
+- `/connect`: Initiates bank connection
+- `/accounts`: Retrieves account information
+- `/transactions`: Fetches transaction data
+- `/webhooks`: Receives real-time updates
+
+### Error Handling
+
+The system implements robust error handling for:
+- Connection timeouts
+- API rate limiting
+- Invalid credentials
+- Network failures
+- Data inconsistencies
+
+## Usage in Frontend
+
+Example of initiating bank connection:
+
+```typescript
+const connectBank = async (userId: string) => {
+  const connection = await powensService.createConnection({
+    userId,
+    redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/banks/callback`,
+  });
   
-## 🎨 Design
-
-You can view the wireframes and design on Figma [here](https://www.figma.com/design/t3U6biDnxSgbhiWyM1NzZi/PFE-WIREFRAMES%2FDESIGN?node-id=0-1&t=m0IwU8JKGkDuLG3v-1).
-
-## 🌐 Online Demo
-
-Or simply if you want to test the app online, go to this link: [https://unicent.vercel.app/dashboard](https://unicent.vercel.app/dashboard)
-
-
-
-## 📁 Project Structure(in progress)
-
-```bash
-unicent/
-├── prisma/
-│   ├── migrations/
-│   └── schema.prisma
-├── src/
-│   ├── app/
-│   │   ├── api/               # API routes
-│   │   ├── auth/              # Authentication module
-│   │   ├── dashboard/         # Dashboard interface and components
-│   │   ├── fonts/             # Custom font assets
-│   │   ├── favicon.ico        # Favicon file
-│   │   ├── globals.css        # Global CSS styles
-│   │   ├── layout.tsx         # Layout component
-│   │   └── page.tsx           # Main page component
-│   ├── assets/                # Static assets like images, icons, etc.
-│   ├── components/            # Reusable UI components
-│   ├── data/                  # Mock data or static data files
-│   ├── hooks/                 # Custom React hooks
-│   ├── lib/                   # Utility libraries or helpers
-│   ├── schemas/               # Data schemas, validations
-│   ├── services/              # External services, API calls, etc.
-│   ├── types/                 # TypeScript types and interfaces
-│   └── utils/                 # General utility functions
-├── public/                    # Public assets accessible in build
-├── .env                       # Environment variables
-├── .env.local                 # Local environment variables``
-├── .env.example               # Example environment variables
-├── docker-compose.yml         # Docker Compose configuration
-├── Dockerfile                 # Dockerfile for containerizing the app
-├── next.config.js             # Next.js configuration
-├── package.json               # Project dependencies and scripts
-├── postcss.config.js          # PostCSS configuration for styling
-├── README.md                  # Project README
-├── tailwind.config.js         # Tailwind CSS configuration
-└── tsconfig.json              # TypeScript configuration
+  return connection.connectionUrl;
+};
 ```
-## 🔐 Authentication
 
-Authentication is handled using **NextAuth.js v5** with the following setup:
+## Security Considerations
 
-- **Prisma** as the authentication provider
-- **Custom middleware** for route protection
-- **Prisma adapter** for database integration
+- All API communications use TLS encryption
+- Bank credentials are never stored in our database
+- Powens handles secure credential management
+- Regular security audits are performed
+- Data is encrypted at rest
 
-### Key files:
+## Monitoring and Maintenance
 
-- `src/auth.ts`: Main NextAuth configuration
-- `src/middleware.ts`: Custom middleware for route protection
+The system includes:
+- Transaction sync status monitoring
+- Error rate tracking
+- Connection health checks
+- Automated retry mechanisms
+- Performance metrics collection
 
-## 🐳 Docker Setup
+## Development Status
 
-The project uses Docker for consistent development environments:
-
-- `Dockerfile`: Defines the container for the Next.js application
-- `docker-compose.yml`: Orchestrates the app, database, and Adminer services
-
-### Services:
-
-1. **PostgreSQL Database**:
-   - Image: `postgres:13`
-   - Exposed port: 5432
-   - Configurable via environment variables
-
-2. **Adminer**:
-   - Web-based database management tool
-   - Accessible at `http://localhost:8080`
-   - Uses custom theme: pepa-linha
-
-3. **Next.js Application**:
-   - Custom build from `Dockerfile`
-   - Exposed ports: 3000 (Next.js app) and 5555 (Prisma Studio)
-
-### Environment Variables:
-
-Create a `.env` file in the project root with the following variables:
-
-```bash 
-#.env:example:
-
-# Copy this file to .env and fill in the values for your environment.
-POSTGRES_PASSWORD=unicentpassword
-POSTGRES_DB=unicent
-POSTGRES_SCHEMA=public
-POSTGRES_PORT=5432
-POSTGRES_USER=unicent
-
-DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}?schema=${POSTGRES_SCHEMA}"
-
-
-
-
-AUTH_GOOGLE_ID=
-AUTH_GOOGLE_SECRET=
-AUTH_RESEND_KEY=
-AUTH_SECRET= # Generate it using `npx auth`. Read more: https://cli.authjs.dev
-
-AUTH_RESEND_FROM=
-REDIS_URL="redis://localhost:6379" # or your Redis provider URL (e.g., Upstash, Redis Labs) for caching
-powens_client_id= # Your Powens client ID or any other banking client ID data provider
-powens_client_secret= # Your Powens client secret or any other banking client secret data provider
-
-
-````
-
-### Starting the Development Environment:
-
-1. Ensure Docker and Docker Compose are installed on your system.
-
-2. Build and start the containers:
-   ```bash
-   docker-compose up --build
-### Access the services:
-
-- Next.js app: `http://localhost:3000`
-- Prisma Studio: `http://localhost:5555`
-- Adminer: `http://localhost:8080`
-
-### To stop the containers:
-
-```bash
-docker-compose down
-```
-### Database Management with Adminer:
-
-1. Open `http://localhost:8080` in your browser
-2. Log in with the following details:
-   - System: PostgreSQL
-   - Server: db
-   - Username: [POSTGRES_USER from .env]
-   - Password: [POSTGRES_PASSWORD from .env]
-   - Database: [POSTGRES_DB from .env]
-
-### Notes:
-
-- The PostgreSQL data is persisted in a named volume `postgres_data`
-- The application code is mounted as a volume, allowing for live reloading during development
-- Prisma Studio is available for direct database manipulation and visualization
-
-This setup provides a complete development environment with database, admin tools, and the Next.js application, all containerized for consistency across different development machines.
-```bash
-You can now use this section for your documentation as needed.
-
+Currently in active development. Next steps include:
+- Implementing transaction categorization
+- Adding support for multiple currencies
+- Enhancing error recovery mechanisms
+- Improving sync performance
+- Adding transaction search capabilities
