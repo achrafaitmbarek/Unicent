@@ -5,6 +5,7 @@ import { RegisterSchema } from "@/schemas"
 import { signIn } from "@/auth"
 import { getUserByEmail } from "@/data/user"
 import { prisma } from "@/lib/prisma"
+import { rateLimiter } from "@/lib/rate-limit"
 
 
 
@@ -16,6 +17,10 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     }
 
     const { email, name } = validatedFields.data;
+    const canProceed = await rateLimiter(email);
+        if (!canProceed) {
+            return { error: 'Too many requests. Please try again later ' }
+        }
 
     try {
         const existingUser = await getUserByEmail(email);
