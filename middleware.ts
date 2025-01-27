@@ -1,24 +1,21 @@
 import { auth } from "@/auth";
 
+import { publicRoutes, authRoutes, protectedRoutes, DEFAULT_LOGIN_REDIRECT } from "@/routes";
+
 export default auth((req) => {
   const url = new URL(req.nextUrl);
 
   if (req.auth) {
-    // If authenticated and accessing the root, redirect to /dashboard
-    if (url.pathname === "/" || url.pathname === "/auth/login"|| url.pathname === "/auth/register") {
-      const dashboardUrl = new URL("/dashboard", req.nextUrl.origin);
-      return Response.redirect(dashboardUrl);
+    if ([...publicRoutes, ...authRoutes].includes(url.pathname)) {
+      const redirectUrl = new URL(DEFAULT_LOGIN_REDIRECT, req.nextUrl.origin);
+      return Response.redirect(redirectUrl);
     }
   } else {
-    // If not authenticated and accessing /dashboard, redirect to /auth/login
-    if (url.pathname === "/dashboard") {
+    if (protectedRoutes.includes(url.pathname)) {
       const loginUrl = new URL("/auth/login", req.nextUrl.origin);
       return Response.redirect(loginUrl);
     }
-
-    // If not authenticated and accessing any other path except root and /auth/login, redirect to the root
-    //url.pathname !== "/" &&
-    if ( url.pathname !== "/auth/login" && url.pathname !== "/auth/register") {
+    if (![...publicRoutes, ...authRoutes].includes(url.pathname)) {
       const rootUrl = new URL("/auth/login", req.nextUrl.origin);
       return Response.redirect(rootUrl);
     }
