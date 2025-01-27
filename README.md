@@ -22,13 +22,18 @@ Unicent is a financial management application that integrates bank data analysis
 - **Frontend**: Next.js 13+ with App Router
 - **Language**: TypeScript
 - **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: NextAuth.js v5 with Supabase provider
+- **Authentication**: NextAuth.js v5 with Prisma provider
 - **API Integrations**: Powens (banking data), OpenAI GPT (transaction analysis)
-- **Containerization**: Docker
+- **Containerization**: Docker (Local development)
   
 ## 🎨 Design
 
 You can view the wireframes and design on Figma [here](https://www.figma.com/design/t3U6biDnxSgbhiWyM1NzZi/PFE-WIREFRAMES%2FDESIGN?node-id=0-1&t=m0IwU8JKGkDuLG3v-1).
+
+## 🌐 Online Demo
+
+Or simply if you want to test the app online, go to this link: [https://unicent.vercel.app/dashboard](https://unicent.vercel.app/dashboard)
+
 
 
 ## 📁 Project Structure(in progress)
@@ -59,7 +64,8 @@ unicent/
 │   └── utils/                 # General utility functions
 ├── public/                    # Public assets accessible in build
 ├── .env                       # Environment variables
-├── .env.local                 # Local environment variables
+├── .env.local                 # Local environment variables``
+├── .env.example               # Example environment variables
 ├── docker-compose.yml         # Docker Compose configuration
 ├── Dockerfile                 # Dockerfile for containerizing the app
 ├── next.config.js             # Next.js configuration
@@ -73,7 +79,7 @@ unicent/
 
 Authentication is handled using **NextAuth.js v5** with the following setup:
 
-- **Supabase** as the authentication provider
+- **Prisma** as the authentication provider
 - **Custom middleware** for route protection
 - **Prisma adapter** for database integration
 
@@ -112,12 +118,30 @@ Create a `.env` file in the project root with the following variables:
 ```bash 
 #.env:example:
 
-POSTGRES_USER=your_username
-POSTGRES_PASSWORD=your_password
-POSTGRES_DB=your_database_name
-DATABASE_URL="postgresql://your_username:your_password@db:5432/your_database_name?schema=public"
+# Copy this file to .env and fill in the values for your environment.
+POSTGRES_PASSWORD=unicentpassword
+POSTGRES_DB=unicent
+POSTGRES_SCHEMA=public
+POSTGRES_PORT=5432
+POSTGRES_USER=unicent
+
+DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}?schema=${POSTGRES_SCHEMA}"
+
+
+
+
+AUTH_GOOGLE_ID=
+AUTH_GOOGLE_SECRET=
+AUTH_RESEND_KEY=
+AUTH_SECRET= # Generate it using `npx auth`. Read more: https://cli.authjs.dev
+
+AUTH_RESEND_FROM=
+REDIS_URL="redis://localhost:6379" # or your Redis provider URL (e.g., Upstash, Redis Labs) for caching
+powens_client_id= # Your Powens client ID or any other banking client ID data provider
+powens_client_secret= # Your Powens client secret or any other banking client secret data provider
+
+
 ````
-Replace `your_username`, `your_password`, and `your_database_name` with your preferred values.
 
 ### Starting the Development Environment:
 
