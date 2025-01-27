@@ -4,6 +4,7 @@ import * as z from "zod"
 import { LoginSchema } from "@/schemas"
 import { signIn } from "@/auth"
 import { getUserByEmail } from "@/data/user"
+import { rateLimiter } from "@/lib/rate-limit"
 
 export const login = async (values: z.infer<typeof LoginSchema>) => {
     // Client-side validation can always be bypassed, that's why we need to validate on the server side as well
@@ -15,6 +16,10 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
 
     const { email } = validatedFields.data;
 
+    const canProceed = await rateLimiter(email);
+    if (!canProceed) {
+        return { error: 'Too many requests. Please try again later ' }
+    }
     try {
         const existingUser = await getUserByEmail(email);
 
