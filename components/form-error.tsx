@@ -9,7 +9,7 @@ export const FormError = ({
 }: FormErrorProps) => {
     if (!message) return null;
     return (
-        <div className="bg-destructive/15 p-3 rounded-md flex items-center gap-x-2 text-destructive ">
+        <div data-testid="error-message" className="bg-destructive/15 p-3 rounded-md flex items-center gap-x-2 text-destructive ">
             <ExclamationTriangleIcon className="w-5 h-5" />
             <p>{message}</p>
         </div>
