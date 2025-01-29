@@ -1,10 +1,9 @@
-// app/page.tsx
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import Logo from '@/assets/TypoLogoWhite.png';
+import Logo from '@/assets/TypoLogoForeground.png';
 import launchIcon from "@/assets/launch-icon.png";
 
 export const metadata: Metadata = {
