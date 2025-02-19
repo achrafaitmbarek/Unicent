@@ -14,7 +14,7 @@ import { handleGoogleSignIn, login } from "@/services/actions/login";
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
 import { FcGoogle } from "react-icons/fc";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 
 
@@ -29,7 +29,7 @@ const RegisterFormContent = () => {
     const [isPending, startTransition] = useTransition()
     const [error, setError] = useState<string | undefined>("")
     const [success, setSuccess] = useState<string | undefined>("")
-    const router = useRouter();
+    // const router = useRouter();
     const [isRedirecting, setIsRedirecting] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const form = useForm<z.infer<typeof LoginSchema>>({
@@ -50,15 +50,15 @@ const RegisterFormContent = () => {
                         setError(data.error);
                         if (data.redirect) {
                             setIsRedirecting(true);
-                            setTimeout(() => {
-                                router.push(data.redirect);
-                            }, 2000); // Redirect after 2 seconds
+                            // setTimeout(() => {
+                            //     router.push(data.redirect);
+                            // }, 2000); // Redirect after 2 seconds
                         }
                     } else if (data.success) {
                         setSuccess(data.success);
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 3000);
+                        // setTimeout(() => {
+                        //     window.location.reload();
+                        // }, 3000);
                     }
                 })
         })
@@ -103,7 +103,7 @@ const RegisterFormContent = () => {
                     <FormError message={error || urlError} />
                     <FormSuccess message={success} />
                     <Button type="submit" size={"lg"}
-                        disabled={isPending || !!success || isRedirecting}
+                        disabled={isPending || isRedirecting}
                         className="w-full font-semibold flex items-center justify-center">
                         {(isPending || isRedirecting) && (
                             <div className="spinner mr-2"></div>
