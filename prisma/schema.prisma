@@ -23,90 +23,22 @@ model User {
 
 
 model BankConnection {
-  id          String @id @default(cuid())
-  userId      String
-  provider    String
-  providerId  String
-  status      BankConnectionStatus
-  lastSync    DateTime?
-  lastRefresh DateTime?
+  id            String   @id @default(cuid())
+  userId        String
+  providerId    String  
+  accessToken   String?
+  refreshToken  String?
+  expiresAt     DateTime?
+  lastRefresh   DateTime?
+  
 
   user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accounts    BankAccount[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@unique([userId, providerId])
   @@index([userId])
-}
-
-
-model BankAccount {
-  id             String @id @default(cuid())
-  connectionId   String
-  externalId     String 
-  name           String
-  type           BankAccountType
-  balance        Decimal         @db.Decimal(15,2)
-  currency       String         @db.VarChar(3)
-  lastSync       DateTime?
-
-  connection     BankConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
-  transactions   Transaction[]
-
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  @@unique([connectionId, externalId])
-  @@index([currency])
-}
-
-model Transaction {
-  id          String @id @default(cuid())
-  accountId   String
-  externalId  String
-  amount      Decimal         @db.Decimal(15,2)
-  currency    String          @db.VarChar(3)
-  description String
-  category    String?
-  date        DateTime
-  type        TransactionType
-  status      TransactionStatus
-
-  account     BankAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@unique([accountId, externalId])
-  @@index([date])
-  @@index([type])
-  @@index([status])
-}
-
-
-enum BankConnectionStatus {
-  PENDING
-  CONNECTED
-  DISCONNECTED
-  ERROR
-  SYNCING
-}
-
-enum BankAccountType {
-  CHECKING
-  SAVINGS
-  CREDIT
-  LOAN
-  INVESTMENT
-  OTHER
-}
-
-enum TransactionType {
-  INCOME
-  EXPENSE
-  TRANSFER
 }
 
 enum TransactionStatus {

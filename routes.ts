@@ -24,6 +24,7 @@ export const authRoutes = [
  */
 export const protectedRoutes = [
     "/dashboard",
+    "/dashboard/*"
 ];
 
 /**

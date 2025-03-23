@@ -24,13 +24,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      // Handle redirect URLs
       if (url.startsWith(baseUrl)) return url;
-      // Allows relative callback URLs
       else if (url.startsWith("/")) return new URL(url, baseUrl).toString();
       return baseUrl;
+    },async jwt({ token, user }) {
+      if (user) {
+        token.userId = user.id;
+      }
+
+      else if (!token.userId && token.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email },
+        });
+        if (dbUser) {
+          token.userId = dbUser.id;
+        }
+      }
+      return token;
     },
-    // Add other callbacks as needed
+    async session({ session, token }) {
+      if (token?.userId) {
+        session.user.id = token.userId as string;
+      }
+      return session;
+    },
     async signIn({}) {
       return true;
   },
