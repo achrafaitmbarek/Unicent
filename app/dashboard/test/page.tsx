@@ -7,82 +7,47 @@ import { Button } from '@/components/ui/button'
 interface Currency {
     id: string;
     symbol: string;
-    prefix: boolean;
-    crypto: boolean;
-    precision: number;
-    name: string;
-    marketcap: null | number;
-    datetime: null | string;
 }
 
-// Account interface
 interface BankAccount {
     id: number;
-    id_connection: number;
-    id_user: number;
     number: string;
-    webid: string;
-    original_name: string;
-    name: string;
     balance: number;
-    coming: number;
-    coming_balance: number;
-    formatted_balance: string;
-    iban: string;
-    bic: string;
-    type: string;
-    usage: string;
-    ownership: string;
     currency: Currency;
-    last_update: string;
-    // Additional fields omitted for brevity
+    name: string;
+    iban: string;
 }
-
-// Transaction interface
 interface Transaction {
     id: number;
-    id_account: number;
-    date: string;
-    application_date: string;
-    value: number;
-    formatted_value: string;
-    original_wording: string;
     wording: string;
-    simplified_wording: string;
+    date: string;
+    rdate: string;
+    value: number;
     type: string;
-    coming: boolean;
-    active: boolean;
-    // Additional fields omitted for brevity
 }
 
-// Account response interface
 interface AccountsResponse {
     success: boolean;
     data?: {
-        balance: number;
-        balances: Record<string, number>;
-        coming_balances: Record<string, number>;
         accounts: BankAccount[];
-        total: number;
+        balance: number;
+        coming_balances: {
+            EUR: number;
+        };
     };
-    connectionId?: string;
     error?: string;
+    connectionId?: string;
 }
 
-// Transaction response interface
 interface TransactionsResponse {
     success: boolean;
     transactions?: Transaction[];
-    metadata?: {
-        first_date: string;
-        last_date: string;
-        total: number;
-        has_more: boolean;
-    };
+    first_date?: string;
+    last_date?: string;
     error?: string;
 }
 
-// Union type for API responses
+
 type ApiResponse = AccountsResponse | TransactionsResponse | null;
 
 export default function TestPage() {
@@ -108,6 +73,8 @@ export default function TestPage() {
         try {
             const result = await fetchBankAccounts()
             setResponse(result)
+            console.log('Fetched accounts:', result.data?.balance)
+            console.log('coming balance ' + JSON.stringify(result.data?.coming_balances.EUR))
 
             if (result.success && result.data && result.data.accounts) {
                 setAccounts(result.data.accounts)
@@ -185,12 +152,58 @@ export default function TestPage() {
 
             {isLoading && <div className="mt-4">Loading...</div>}
 
-            {response && (
+            {response && 'data' in response && response.data?.accounts && response.data.accounts.length > 0 && (
                 <div className="mt-8">
-                    <h2 className="text-xl font-semibold mb-2">Response:</h2>
-                    <pre className="bg-gray-100 p-4 rounded overflow-auto max-h-96">
-                        {JSON.stringify(response, null, 2)}
-                    </pre>
+                    <h2 className="text-xl font-semibold mb-4">Bank Accounts:</h2>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {response.data.accounts.map(account => (
+                            <div key={account.id} className="border rounded p-4 bg-white shadow">
+                                <div className="font-medium">Account # {account.number}</div>
+                                <div className="text-gray-600">{account.name}</div>
+                                <div className="text-xl font-bold mt-1">
+                                    {account.balance} {account.currency.symbol}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+            {response && 'transactions' in response && response.transactions && response.transactions.length > 0 && (
+                <div className="mt-8">
+                    <h2 className="text-xl font-semibold mb-4">Transactions:</h2>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posted Date</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {response.transactions.map(transaction => (
+                                    <tr key={transaction.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">{transaction.wording}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">{transaction.date}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">{transaction.rdate}</td>
+                                        <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${transaction.value < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                            {transaction.value}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">{transaction.type}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {response && 'error' in response && response.error && (
+                <div className="mt-8 p-4 bg-red-50 text-red-700 rounded">
+                    <p className="font-semibold">Error:</p>
+                    <p>{response.error}</p>
                 </div>
             )}
         </div>

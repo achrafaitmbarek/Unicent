@@ -2,6 +2,8 @@
 
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import { storeBankAccounts, storeTransactions } from './store-bank-data';
+
 
 
 export async function fetchBankAccounts() {
@@ -43,6 +45,9 @@ export async function fetchBankAccounts() {
     }
 
     const accountData = await response.json();
+    if (connection?.id && accountData?.accounts) {
+      await storeBankAccounts(connection.id, accountData.accounts);
+    }
 
     await prisma.bankConnection.update({
       where: { id: connection.id },
@@ -106,6 +111,19 @@ export async function fetchAllTransactions(accountId: string , limit: number) {
     }
 
     const data = await response.json();
+    if (data.transactions) {
+      const storedAccount = await prisma.bankAccount.findUnique({
+        where: {
+          connectionId_id: {
+            connectionId: connection.id,
+            id: parseInt(accountId, 10)
+          }
+        }
+      });
+      if (storedAccount) {
+        await storeTransactions(storedAccount.pk, data.transactions);
+      }
+    }
     
     return {
       success: true,

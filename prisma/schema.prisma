@@ -30,7 +30,8 @@ model BankConnection {
   refreshToken  String?
   expiresAt     DateTime?
   lastRefresh   DateTime?
-  
+
+  accounts      BankAccount[]
 
   user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -40,13 +41,48 @@ model BankConnection {
   @@unique([userId, providerId])
   @@index([userId])
 }
+model BankAccount {
+  pk             String   @id @default(cuid())    
+  id             Int                                     
+  number         String
+  balance        Float
+  name           String
+  iban           String
+  currencyId     String
+  currencySymbol String
 
-enum TransactionStatus {
-  PENDING
-  POSTED
-  CANCELED
+  connectionId   String
+  connection     BankConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  transactions   Transaction[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([connectionId, id])
+  @@index([connectionId])
 }
- 
+
+model Transaction {
+  pk        String   @id @default(cuid())  
+  id        Int                              
+  wording   String
+  date      DateTime
+  rdate     DateTime
+  value     Float
+  type      String
+
+  accountId String
+  account   BankAccount @relation(fields: [accountId], references: [pk], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([accountId, id])
+  @@index([accountId])
+  @@index([date])
+}
+
 model Account {
   userId            String
   type              String
@@ -67,7 +103,6 @@ model Account {
  
   @@id([provider, providerAccountId])
 }
- 
 
  
 model VerificationToken {
