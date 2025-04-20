@@ -13,7 +13,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background:#f2f4fa;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -46,6 +46,27 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --nav-light: 213 97% 15%;         
+    --nav-light-hover: 206 29% 89%;   
+    --nav-light-active: 209 27% 77%;  
+    
+    --nav-normal: 213 97% 25%;        
+    --nav-normal-hover: 214 97% 22%;  
+    --nav-normal-active: 214 97% 20%; 
+    
+    --nav-dark: 215 97% 19%;          
+    --nav-dark-hover: 213 97% 15%;    
+    --nav-dark-active: 214 97% 11%;   
+    
+    --nav-darker: 215 97% 8%;         
+    
+    /* New text colors */
+    --nav-text: 214 11% 60%;          
+    --nav-text-active: 215 97% 8%;    
+    
+    /* New background for selected subitems */
+    --nav-subitem-active-bg: 210 25% 92%;     
   }
   .dark {
     --background: 222.2 84% 4.9%;

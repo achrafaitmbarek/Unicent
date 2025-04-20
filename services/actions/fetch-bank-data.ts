@@ -143,3 +143,37 @@ export async function fetchAllTransactions(accountId: string , limit: number) {
     };
   }
 }
+
+export async function syncBankData() {
+  try {
+    const accountsResult = await fetchBankAccounts();
+    
+    if (!accountsResult.success) {
+      return { success: false, error: accountsResult.error || "Failed to fetch accounts" };
+    }
+
+    if (accountsResult.connectionId) {
+      const accounts = await prisma.bankAccount.findMany({
+        where: {
+          connectionId: accountsResult.connectionId
+        }
+      });
+      
+      for (const account of accounts) {
+        try {
+          await fetchAllTransactions(account.id.toString(), 50);
+        } catch (err) {
+          console.error(`Error fetching transactions for account ${account.id}:`, err);
+        }
+      }
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Sync error:", error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "Unknown error during sync" 
+    };
+  }
+}

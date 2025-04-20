@@ -84,17 +84,18 @@ const RegisterFormContent = () => {
             </div>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}
-                    className="space-y-6 w-1/2">
-                    <div className="space-y-4">
+                    className="space-y-6 w-full ">
+                    <div className="space-y-4 w-2/3 md:w-1/2 flex mx-auto ">
                         <FormField control={form.control}
                             name="email"
                             render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="w-full">
                                     <FormLabel>Email</FormLabel>
                                     <FormControl>
                                         <Input {...field}
                                             placeholder="john.doe@example.com"
-                                            disabled={isPending} />
+                                            disabled={isPending}
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -102,9 +103,9 @@ const RegisterFormContent = () => {
                     </div>
                     <FormError message={error || urlError} />
                     <FormSuccess message={success} />
-                    <Button type="submit" size={"lg"}
+                    <Button type="submit" size={'lg'}
                         disabled={isPending || isRedirecting}
-                        className="w-full font-semibold flex items-center justify-center">
+                        className="w-2/3 md:w-1/2  mx-auto font-semibold flex items-center justify-center">
                         {(isPending || isRedirecting) && (
                             <div className="spinner mr-2"></div>
                         )}
@@ -122,7 +123,7 @@ const RegisterFormContent = () => {
                 onClick={onGoogleClick}
                 disabled={isGoogleLoading || !!success || isRedirecting}
                 variant="outline"
-                className="w-1/2 flex items-center justify-center font-semibold"
+                className="w-2/3 md:w-1/2 flex items-center justify-center font-semibold"
                 size="lg"
             >
                 {(isGoogleLoading) && (

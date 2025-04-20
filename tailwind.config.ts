@@ -13,6 +13,9 @@ const config: Config = {
 		fontFamily:{
 		sans: ['var(--font-nunito-sans)'],
 	},
+	boxShadow: {
+		'submenu': '0px 4px 40px rgba(0, 0, 0, 0.06)',
+	  },
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
@@ -63,7 +66,27 @@ const config: Config = {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
-  			}
+  			},
+	
+			nav: {
+				light: 'hsl(var(--nav-light))',
+				'light-hover': 'hsl(var(--nav-light-hover))',
+				'light-active': 'hsl(var(--nav-light-active))',
+				
+				normal: 'hsl(var(--nav-normal))',
+				'normal-hover': 'hsl(var(--nav-normal-hover))',
+				'normal-active': 'hsl(var(--nav-normal-active))',
+				
+				dark: 'hsl(var(--nav-dark))',
+				'dark-hover': 'hsl(var(--nav-dark-hover))',
+				'dark-active': 'hsl(var(--nav-dark-active))',
+				
+				darker: 'hsl(var(--nav-darker))',
+				
+				text: 'hsl(var(--nav-text))',
+				'text-active': 'hsl(var(--nav-text-active))',
+				'subitem-active-bg': 'hsl(var(--nav-subitem-active-bg))'
+			}
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

@@ -37,15 +37,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         linkText = "Login";
         linkHref = "/auth/login";
     } else {
-        message = "Default message"; // Fallback message if needed
+        message = "Default message";
         linkText = "Default link text";
         linkHref = "/";
     }
     return (
         <div className="flex h-screen flex-col md:flex-row md:overflow-hidden">
             <div className="h-screen w-full mx-auto flex flex-row ">
-                <div className="w-full h-full flex flex-col bg-[#01162C] p-8">
-                    {/* Top Section with Logo and Quote */}
+                <div className="w-full h-full hidden lg:flex flex-col bg-[#01162C] p-8">
                     <div className="flex items-start gap-4 mb-20">
                         <Image
                             src={CointLogo}
@@ -59,7 +58,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                             </h1>
                             <p className="text-gray-300 text-sm max-w-md leading-relaxed">
                                 {`"UC's AI-driven insights have revolutionized how I budget and save.
-                    It's simple yet powerful - exactly what I needed."`}
+                                    It's simple yet powerful - exactly what I needed."`}
                             </p>
                             <p className="text-gray-400 text-sm mt-2">
                                 Sofia Davis
@@ -67,7 +66,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                         </div>
                     </div>
 
-                    {/* Center Image */}
                     <div className="flex-1 flex items-center justify-center">
                         <Image
                             src={LoginAvatar}

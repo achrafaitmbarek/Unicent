@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import powensClient from '@/lib/powens';
-
+import { fetchAllTransactions, fetchBankAccounts } from '@/services/actions/fetch-bank-data';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   const connectionId = searchParams.get('connection_id');
   
   if (!code || !connectionId) {
-    return NextResponse.redirect(new URL('/dashboard/test?error=missing_params', request.url));
+    return NextResponse.redirect(new URL('/dashboard?error=missing_params', request.url));
   }
   
   try {
@@ -24,12 +24,12 @@ export async function GET(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.redirect(new URL('/dashboard/test?error=user_not_found', request.url));
+      return NextResponse.redirect(new URL('/dashboard?error=user_not_found', request.url));
     }
 
     const tokenResponse = await powensClient.exchangeAuthorizationCode(code);
 
-    await prisma.bankConnection.upsert({
+   await prisma.bankConnection.upsert({
       where: {
         userId_providerId: {
           userId: user.id,
@@ -52,9 +52,40 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    return NextResponse.redirect(new URL('/dashboard/test?success=connected', request.url));
+    try {
+      console.log('Fetching accounts...');
+      const accountsResult = await fetchBankAccounts();
+      
+      if (accountsResult.success && accountsResult.connectionId) {
+        const accounts = await prisma.bankAccount.findMany({
+          where: {
+            connectionId: accountsResult.connectionId
+          }
+        });
+        
+        console.log(`Found ${accounts.length} accounts to fetch transactions for`);
+        
+        for (const account of accounts) {
+          try {
+            console.log(`Fetching transactions for account ${account.name || ''} (ID: ${account.id})`);
+            
+            await fetchAllTransactions(account.id.toString(), 50);
+            
+            console.log(`Successfully fetched transactions for account ${account.id}`);
+          } catch (txError) {
+            console.error(`Error fetching transactions for account ${account.id}:`, txError);
+          }
+        }
+      } else {
+        console.error("Failed to fetch accounts or no connection ID returned");
+      }
+    } catch (fetchError) {
+      console.error("Error in data synchronization:", fetchError);
+    }
+
+    return NextResponse.redirect(new URL('/dashboard/analytics?success=true', request.url));
   } catch (error) {
     console.error('Error in callback handler:', error);
-    return NextResponse.redirect(new URL(`/dashboard/test?error=${encodeURIComponent((error as Error).message)}`, request.url));
+    return NextResponse.redirect(new URL(`/dashboard?error=${encodeURIComponent((error as Error).message)}`, request.url));
   }
 }

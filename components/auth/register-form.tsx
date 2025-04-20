@@ -67,13 +67,13 @@ const RegisterFormContent = () => {
 
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}
-                    className="space-y-4 w-1/2">
-                    <div className="space-y-4">
+                    className="space-y-6 w-full">
+                    <div className="space-y-4 w-2/3 md:w-1/2 mx-auto">
                         <FormField
                             control={form.control}
                             name="name"
                             render={({ field }) => (
-                                <FormItem className="space-y-2">
+                                <FormItem className="space-y-2 w-full">
                                     <FormLabel>Full Name</FormLabel>
                                     <FormControl>
                                         <Input {...field}
@@ -102,7 +102,7 @@ const RegisterFormContent = () => {
                     <FormSuccess message={success} />
                     <Button type="submit" size={"lg"}
                         disabled={isPending || !!success || isRedirecting}
-                        className="w-full font-semibold flex items-center justify-center">
+                        className="w-2/3 md:w-1/2  mx-auto font-semibold flex items-center justify-center">
                         {(isPending || isRedirecting) && (
                             <div className="spinner mr-2"></div>
                         )}
@@ -115,9 +115,15 @@ const RegisterFormContent = () => {
                 <span className="flex-shrink mx-4 text-gray-400 text-sm uppercase">OR CONTINUE WITH</span>
                 <div className="flex-grow border-t border-gray-400" />
             </div>
-            <Button onClick={() => {
-                handleGoogleSignIn()
-            }} disabled={isPending || !!success || isRedirecting} variant="outline" className="w-1/2 flex items-center justify-center font-semibold" size={"lg"}>
+            <Button
+                onClick={() => {
+                    handleGoogleSignIn()
+                }}
+                disabled={isPending || !!success || isRedirecting}
+                variant="outline"
+                className="w-2/3 md:w-1/2 flex items-center justify-center font-semibold"
+                size={"lg"}
+            >
                 <FcGoogle style={{ width: '1.5rem', height: '1.5rem' }} />
                 Gmail
             </Button>
