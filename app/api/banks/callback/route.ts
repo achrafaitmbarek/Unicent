@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
           try {
             console.log(`Fetching transactions for account ${account.name || ''} (ID: ${account.id})`);
             
-            await fetchAllTransactions(account.id.toString(), 50);
+            await fetchAllTransactions(account.id.toString());
             
             console.log(`Successfully fetched transactions for account ${account.id}`);
           } catch (txError) {

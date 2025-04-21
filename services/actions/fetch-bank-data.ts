@@ -69,7 +69,7 @@ export async function fetchBankAccounts() {
 }
 
 
-export async function fetchAllTransactions(accountId: string , limit: number) {
+export async function fetchAllTransactions(accountId: string) {
   try {
     const session = await auth();
     if (!session?.user?.email) {
@@ -95,8 +95,16 @@ export async function fetchAllTransactions(accountId: string , limit: number) {
     if (!connection || !connection.accessToken) {
       throw new Error('No active bank connection found');
     }
-
-    const url = `https://unicenttest-sandbox.biapi.pro/2.0/users/me/accounts/${accountId}/transactions/?limit=${limit}`;
+    const today = new Date();
+    const threeMonthsAgo = new Date(today);
+    threeMonthsAgo.setMonth(today.getMonth() - 3);
+    
+    const fmt = (d: Date) => d.toISOString().split('T')[0];
+    const url =
+            `https://unicenttest-sandbox.biapi.pro/2.0/users/me/accounts/${accountId}/transactions` +
+            `?min_date=${fmt(threeMonthsAgo)}` +
+            `&max_date=${fmt(today)}` +
+            `&limit=1000`;  
     
     const response = await fetch(url, {
       headers: {
@@ -161,7 +169,7 @@ export async function syncBankData() {
       
       for (const account of accounts) {
         try {
-          await fetchAllTransactions(account.id.toString(), 50);
+          await fetchAllTransactions(account.id.toString());
         } catch (err) {
           console.error(`Error fetching transactions for account ${account.id}:`, err);
         }

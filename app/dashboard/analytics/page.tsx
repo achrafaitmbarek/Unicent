@@ -1,9 +1,10 @@
 import { getRecentTransactions } from "@/services/actions/transactions";
 import { format, isToday, differenceInHours } from "date-fns";
 import {
-    ShoppingCart, Coffee, CreditCard, Landmark,
     Plane, Utensils, ArrowDownRight, ArrowUpRight,
-    ChevronDown
+    ChevronDown, Receipt, TrendingUp, ShoppingBag,
+    Car, Zap, Film, Building,
+    Heart, GraduationCap, HelpCircle, ShoppingBasket
 } from "lucide-react";
 import { SyncButton } from "@/components/shared/sync-button";
 import {
@@ -21,12 +22,32 @@ import Image from "next/image";
 import customerService from "@/assets/avatars/CustomersService.png"
 import { Button } from "@/components/ui/button";
 import { getAccountBalance, getCategorySpendData, getCurrentMonthSpend, getMonthlySpendData, getTotalExpenses, getTotalIncome } from "@/services/actions/get-bank-data";
+import { TransactionCategory } from "@prisma/client";
 
-function getTransactionIcon() {
-    const icons = [ShoppingCart, Coffee, CreditCard, Landmark, Plane, Utensils];
-    const randomIndex = Math.floor(Math.random() * icons.length);
-    const Icon = icons[randomIndex];
-    return <Icon className="h-5 w-5 text-gray-600" />;
+function getTransactionIcon(category: TransactionCategory) {
+    const iconMap = {
+        SUBSCRIPTION: { icon: Receipt, color: "#7F56D9", bgColor: "#F9F5FF" },
+        INVESTING: { icon: TrendingUp, color: "#12B76A", bgColor: "#ECFDF3" },
+        GROCERIES: { icon: ShoppingBasket, color: "#F79009", bgColor: "#FFFAEB" },
+        SHOPPING: { icon: ShoppingBag, color: "#F63D68", bgColor: "#FFF1F3" },
+        DINING: { icon: Utensils, color: "#F04438", bgColor: "#FEF3F2" },
+        TRANSPORTATION: { icon: Car, color: "#175CD3", bgColor: "#EFF8FF" },
+        UTILITIES: { icon: Zap, color: "#DC6803", bgColor: "#FFFAEB" },
+        ENTERTAINMENT: { icon: Film, color: "#C11574", bgColor: "#FDF2FA" },
+        HOUSING: { icon: Building, color: "#363F72", bgColor: "#F8F9FC" },
+        HEALTHCARE: { icon: Heart, color: "#B42318", bgColor: "#FEF3F2" },
+        EDUCATION: { icon: GraduationCap, color: "#027A48", bgColor: "#ECFDF3" },
+        TRAVEL: { icon: Plane, color: "#026AA2", bgColor: "#F0F9FF" },
+        OTHER: { icon: HelpCircle, color: "#667085", bgColor: "#F2F4F7" }
+    };
+
+    const iconData = iconMap[category] || iconMap.OTHER;
+    const Icon = iconData.icon;
+
+    return {
+        icon: <Icon className={`h-5 w-5`} style={{ color: iconData.color }} />,
+        bgColor: iconData.bgColor
+    };
 }
 
 const Analytics = async () => {
@@ -128,14 +149,21 @@ const Analytics = async () => {
                                     {transactions?.map((tx) => {
                                         const txDate = new Date(tx.date);
                                         const isRecent = differenceInHours(new Date(), txDate) < 1;
-
                                         return (
                                             <TableRow key={tx.pk} className="hover:bg-gray-50 transition-colors">
                                                 <TableCell>
                                                     <div className="flex items-center gap-3">
-                                                        <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                                                            {getTransactionIcon()}
-                                                        </div>
+                                                        {(() => {
+                                                            const { icon, bgColor } = getTransactionIcon(tx.category);
+                                                            return (
+                                                                <div
+                                                                    className="h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0"
+                                                                    style={{ backgroundColor: bgColor }}
+                                                                >
+                                                                    {icon}
+                                                                </div>
+                                                            );
+                                                        })()}
                                                         <span className="font-medium text-gray-800">{tx.wording}</span>
                                                     </div>
                                                 </TableCell>
