@@ -18,7 +18,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
                 <SidebarTrigger />
                 {children}
             </main>
-            <Toaster />
+            <Toaster richColors />
         </SidebarProvider>
     );
 }

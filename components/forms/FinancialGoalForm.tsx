@@ -14,7 +14,7 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { createFinancialGoal } from "@/services/actions/financial-goal";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -38,30 +38,27 @@ export function FinancialGoalForm({ initialData, onCancel }: FinancialGoalFormPr
             userId: "",
         },
     });
+
     async function onSubmit(data: z.infer<typeof FinancialGoalSchema>) {
         try {
             setIsSubmitting(true);
             const response = await createFinancialGoal(data);
 
             if (response.success) {
-                toast({
-                    title: "Success!",
+                toast.success("Success!", {
                     description: "Financial goal created successfully",
-                });
-                router.push("/dashboard/goals");
+                })
+                if (onCancel) {
+                    onCancel();
+                }
+                router.push("/dashboard/analytics/financial-planning");
             } else {
-                toast({
-                    title: "Error",
-                    description: response.error || "Something went wrong",
-                    variant: "destructive",
+                toast.error("Failed to create financial goal", {
+                    description: response.error,
                 });
             }
         } catch {
-            toast({
-                title: "Error",
-                description: "Failed to create financial goal",
-                variant: "destructive",
-            });
+            toast.error("An error occurred while creating the financial goal")
         } finally {
             setIsSubmitting(false);
         }
@@ -69,17 +66,20 @@ export function FinancialGoalForm({ initialData, onCancel }: FinancialGoalFormPr
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 ">
                 <FormField
                     control={form.control}
                     name="name"
                     render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Goal Name</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g. Emergency Fund" {...field} />
-                            </FormControl>
-                            <FormMessage />
+                        <FormItem className="grid grid-cols-3 items-center gap-4">
+                            <FormLabel className="text-right">Goal Name</FormLabel>
+                            <div className="col-span-2">
+                                <FormControl>
+                                    <Input placeholder="e.g. Emergency Fund" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </div>
                         </FormItem>
                     )}
                 />
@@ -88,17 +88,23 @@ export function FinancialGoalForm({ initialData, onCancel }: FinancialGoalFormPr
                     control={form.control}
                     name="amount"
                     render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Target Amount</FormLabel>
-                            <FormControl>
-                                <Input
-                                    type="number"
-                                    placeholder="0.00"
-                                    {...field}
-                                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                                />
-                            </FormControl>
-                            <FormMessage />
+                        <FormItem className="grid grid-cols-3 items-center gap-4">
+                            <FormLabel className="text-right">Target Amount</FormLabel>
+                            <div className="col-span-2">
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        placeholder="0.00"
+                                        {...field}
+                                        value={field.value || ""}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            field.onChange(value === '' ? 0 : parseFloat(e.target.value))
+                                        }}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </div>
                         </FormItem>
                     )}
                 />
@@ -107,33 +113,35 @@ export function FinancialGoalForm({ initialData, onCancel }: FinancialGoalFormPr
                     control={form.control}
                     name="targetDate"
                     render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                            <FormLabel>Target Date</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <FormControl>
-                                        <Button
-                                            variant="outline"
-                                            className={cn(
-                                                "w-full pl-3 text-left font-normal",
-                                                !field.value && "text-muted-foreground"
-                                            )}
-                                        >
-                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                        </Button>
-                                    </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                        mode="single"
-                                        selected={field.value}
-                                        onSelect={field.onChange}
-                                        disabled={(date) => date < new Date()}
-                                    />
-                                </PopoverContent>
-                            </Popover>
-                            <FormMessage />
+                        <FormItem className="grid grid-cols-3 items-center gap-4">
+                            <FormLabel className="text-right">Target Date</FormLabel>
+                            <div className="col-span-2">
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                                variant="outline"
+                                                className={cn(
+                                                    "w-full pl-3 text-left font-normal",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                            >
+                                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) => date < new Date()}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </div>
                         </FormItem>
                     )}
                 />
@@ -142,23 +150,25 @@ export function FinancialGoalForm({ initialData, onCancel }: FinancialGoalFormPr
                     control={form.control}
                     name="category"
                     render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Category</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a category" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {Object.values(Category).map((category) => (
-                                        <SelectItem key={category} value={category}>
-                                            {category}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
+                        <FormItem className="grid grid-cols-3 items-center gap-4">
+                            <FormLabel className="text-right">Category</FormLabel>
+                            <div className="col-span-2">
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a category" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {Object.values(Category).map((category) => (
+                                            <SelectItem key={category} value={category}>
+                                                {category}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </div>
                         </FormItem>
                     )}
                 />
@@ -167,30 +177,34 @@ export function FinancialGoalForm({ initialData, onCancel }: FinancialGoalFormPr
                     control={form.control}
                     name="monthlyAllocationPct"
                     render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Monthly Allocation (%)</FormLabel>
-                            <FormControl>
-                                <Input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    placeholder="e.g. 10"
-                                    {...field}
-                                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                                />
-                            </FormControl>
-                            <FormMessage />
+                        <FormItem className="grid grid-cols-3 items-center gap-4">
+                            <FormLabel className="text-right">Monthly %</FormLabel>
+                            <div className="col-span-2">
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        placeholder="e.g. 10"
+                                        {...field}
+                                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </div>
                         </FormItem>
                     )}
                 />
 
-                <div className="flex gap-2 justify-end">
+                <div className="flex gap-2 justify-end pt-4 mt-2">
                     {onCancel && (
                         <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>
                             Cancel
                         </Button>
                     )}
-                    <Button type="submit">Save Goal</Button>
+                    <Button type="submit" disabled={isSubmitting} className="bg-primary hover:bg-primary/90">
+                        {isSubmitting ? "Creating..." : "Create Goal"}
+                    </Button>
                 </div>
             </form>
         </Form>
