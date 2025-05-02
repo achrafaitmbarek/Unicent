@@ -1,225 +1,216 @@
-import { getRecentTransactions } from "@/services/actions/transactions";
-import { format, isToday, differenceInHours } from "date-fns";
-import {
-    Plane, Utensils, ArrowDownRight, ArrowUpRight,
-    ChevronDown, Receipt, TrendingUp, ShoppingBag,
-    Car, Zap, Film, Building,
-    Heart, GraduationCap, HelpCircle, ShoppingBasket
-} from "lucide-react";
-import { SyncButton } from "@/components/shared/sync-button";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { FinancialCard } from "@/components/shared/financial-card"
-import { ActivityChart } from "@/components/shared/activity-chart";
-import { MonthlySpendChart } from "@/components/shared/monthly-spend-chart";
-import Image from "next/image";
-import customerService from "@/assets/avatars/CustomersService.png"
+"use client"
+import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { TransactionAnalyticsView } from "@/components/shared/analytics/TransactionAnalyticsView";
+import { getIncomeTransactions, getSpendingTransactions } from "@/services/actions/transactions";
+import { getMonthlyIncomeData, getMonthlyExpenseData } from "@/services/actions/get-bank-data";
 import { Button } from "@/components/ui/button";
-import { getAccountBalance, getCategorySpendData, getCurrentMonthSpend, getMonthlySpendData, getTotalExpenses, getTotalIncome } from "@/services/actions/get-bank-data";
-import { TransactionCategory } from "@prisma/client";
+import { SyncButton } from "@/components/shared/sync-button";
 
-function getTransactionIcon(category: TransactionCategory) {
-    const iconMap = {
-        SUBSCRIPTION: { icon: Receipt, color: "#7F56D9", bgColor: "#F9F5FF" },
-        INVESTING: { icon: TrendingUp, color: "#12B76A", bgColor: "#ECFDF3" },
-        GROCERIES: { icon: ShoppingBasket, color: "#F79009", bgColor: "#FFFAEB" },
-        SHOPPING: { icon: ShoppingBag, color: "#F63D68", bgColor: "#FFF1F3" },
-        DINING: { icon: Utensils, color: "#F04438", bgColor: "#FEF3F2" },
-        TRANSPORTATION: { icon: Car, color: "#175CD3", bgColor: "#EFF8FF" },
-        UTILITIES: { icon: Zap, color: "#DC6803", bgColor: "#FFFAEB" },
-        ENTERTAINMENT: { icon: Film, color: "#C11574", bgColor: "#FDF2FA" },
-        HOUSING: { icon: Building, color: "#363F72", bgColor: "#F8F9FC" },
-        HEALTHCARE: { icon: Heart, color: "#B42318", bgColor: "#FEF3F2" },
-        EDUCATION: { icon: GraduationCap, color: "#027A48", bgColor: "#ECFDF3" },
-        TRAVEL: { icon: Plane, color: "#026AA2", bgColor: "#F0F9FF" },
-        OTHER: { icon: HelpCircle, color: "#667085", bgColor: "#F2F4F7" }
-    };
+export const experimental_ppr = true
 
-    const iconData = iconMap[category] || iconMap.OTHER;
-    const Icon = iconData.icon;
+const categoryColors = {
+    "SUBSCRIPTION": "#FF5A5F",
+    "GROCERIES": "#7AC74F",
+    "SHOPPING": "#42BFDD",
+    "DINING": "#FFD166",
+    "TRANSPORTATION": "#0353A4",
+    "UTILITIES": "#7678ED",
+    "ENTERTAINMENT": "#D62828",
+    "HOUSING": "#9966FF",
+    "HEALTHCARE": "#EF476F",
+    "EDUCATION": "#4BC0C0",
+    "TRAVEL": "#FB8B24",
+    "TRANSFER": "#118AB2",
+    "OTHER": "#8b5cf6",
 
-    return {
-        icon: <Icon className={`h-5 w-5`} style={{ color: iconData.color }} />,
-        bgColor: iconData.bgColor
+    "SALARY": "#23c55e",
+    "INVESTING": "#fa7a4b",
+    "BUSINESS_INCOME": "#4f46e5",
+    "RENTAL_INCOME": "#06D6A0",
+    "FREELANCE": "#9966FF",
+    "REFUND": "#6366f1",
+    "PENSION": "#84cc16",
+    "DIVIDEND": "#FF6B6B",
+    "GIFT_RECEIVED": "#FF9E7A",
+    "INTEREST": "#C4FAF8"
+};
+type MonthlyDataItem = {
+    month: string;
+    year: string;
+    income?: number;
+    expense?: number;
+};
+
+type MonthlyDataResponse = {
+    data: MonthlyDataItem[];
+    currencySymbol: string;
+    maxValue: number;
+};
+type Transaction = {
+    pk: string;
+    date: string | Date;
+    value: number;
+    wording: string;
+    category?: string;
+    account: {
+        name: string;
+        currencySymbol: string;
+        number?: string;
     };
 }
 
-const Analytics = async () => {
-    const result = await getRecentTransactions(6);
-    const transactions = result.success ? result.transactions : [];
-    const accountBalance = await getAccountBalance();
-    const totalExpenses = await getTotalExpenses();
-    const totalIncome = await getTotalIncome();
-    const currentMonthSpend = await getCurrentMonthSpend();
-    const monthlySpendData = await getMonthlySpendData(3);
-    const categoryData = await getCategorySpendData();
-
-
+function SkeletonAnalytics() {
     return (
-        <div className="space-y-8 p-6">
-            <div>
-                <h1 className="text-2xl font-bold text-[#01162c]">Dashboard</h1>
-                <p className="text-[#8f939f]">Financial Overview</p>
-            </div>
-            <div className="mt-6 grid grid-cols-4 gap-4">
-                <FinancialCard
-                    icon="dollar"
-                    title={currentMonthSpend.monthName}
-                    amount={currentMonthSpend.currencySymbol + currentMonthSpend.total.toFixed(2)}
-                    percentage="+4.85%" isPositive={true} />
-                <FinancialCard
-                    icon="expense"
-                    title="Total Expenses"
-                    amount={totalExpenses.currencySymbol + totalExpenses.total.toFixed(2)}
-                    percentage="+3.74%"
-                    isPositive={false}
-                />
-                <FinancialCard
-                    icon="income"
-                    title="Total Incomes"
-                    amount={totalIncome.currencySymbol + totalIncome.total.toFixed(2)}
-                    percentage="+3.74%"
-                    isPositive={false}
-                />
-                <FinancialCard
-                    icon="balance"
-                    title="Total Balance"
-                    amount={accountBalance[0].currencySymbol + accountBalance[0].balance.toFixed(2)}
-                    percentage="+2.74%"
-                    isPositive={true}
-                />
-            </div>
-
+        <div className="space-y-8 animate-pulse">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="rounded-lg bg-white p-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold text-[#01162c]">Monthly Spend</h2>
-                        <Button className="flex items-center gap-1 rounded-md px-3 py-1 text-sm text-[#8f939f]">
-                            Monthly <ChevronDown className="h-4 w-4" />
-                        </Button>
-                    </div>
-                    <div className="mt-4 h-[240px]">
-                        <MonthlySpendChart
-                            data={monthlySpendData.data}
-                            currencySymbol={monthlySpendData.currencySymbol}
-                        />
-                    </div>
+                <div className="bg-white p-6 rounded-lg shadow-sm h-64">
+                    <div className="h-8 w-48 bg-gray-200 rounded mb-4"></div>
+                    <div className="h-6 w-32 bg-gray-200 rounded mb-4"></div>
+                    <div className="h-40 bg-gray-200 rounded"></div>
                 </div>
-
-                <div className="rounded-lg bg-white p-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold text-[#01162c]">Activity</h2>
-                        <Button className="flex items-center gap-1 rounded-md px-3 py-1 text-sm text-[#8f939f]">
-                            Weekly <ChevronDown className="h-4 w-4" />
-                        </Button>
-                    </div>
-                    <div className="mt-4 flex items-center justify-center">
-                        <ActivityChart data={categoryData} />
-                    </div>
+                <div className="bg-white p-6 rounded-lg shadow-sm h-64">
+                    <div className="h-64 w-64 bg-gray-200 rounded-full mx-auto"></div>
                 </div>
             </div>
-
-            <div className="grid grid-cols-12 gap-6">
-                <div className="col-span-12 lg:col-span-8 bg-white rounded-xl p-6 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xl font-medium text-[#01162c]">Recent Transactions</h3>
-                        <SyncButton />
-                    </div>
-
-                    <div className="bg-white rounded-lg overflow-hidden">
-                        {transactions?.length === 0 ? (
-                            <div className="p-8 text-center text-gray-500">No recent transactions found</div>
-                        ) : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-[40%]">Description</TableHead>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead className="text-right">Amount</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {transactions?.map((tx) => {
-                                        const txDate = new Date(tx.date);
-                                        const isRecent = differenceInHours(new Date(), txDate) < 1;
-                                        return (
-                                            <TableRow key={tx.pk} className="hover:bg-gray-50 transition-colors">
-                                                <TableCell>
-                                                    <div className="flex items-center gap-3">
-                                                        {(() => {
-                                                            const { icon, bgColor } = getTransactionIcon(tx.category);
-                                                            return (
-                                                                <div
-                                                                    className="h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0"
-                                                                    style={{ backgroundColor: bgColor }}
-                                                                >
-                                                                    {icon}
-                                                                </div>
-                                                            );
-                                                        })()}
-                                                        <span className="font-medium text-gray-800">{tx.wording}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {format(txDate, "d MMMM, yyyy")}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {isRecent ? (
-                                                        <span className="rounded-md px-3 py-1 text-xs bg-[#e9f9ef] text-[#27c661]">
-                                                            Now
-                                                        </span>
-                                                    ) : isToday(txDate) ? (
-                                                        <span className="rounded-md px-3 py-1 text-xs bg-[#fff1ed] text-[#ff784b]">
-                                                            Today
-                                                        </span>
-                                                    ) : (
-                                                        <span className="rounded-md px-3 py-1 text-xs bg-[#e9f9ef] text-[#27c661]">
-                                                            Past
-                                                        </span>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <div className={`font-medium flex items-center justify-end ${tx.flow === 'INCOME' ? 'text-green-600' : 'text-red-600'}`}>
-                                                        {tx.flow === 'INCOME' ? (
-                                                            <ArrowDownRight className="h-4 w-4 mr-1" />
-                                                        ) : (
-                                                            <ArrowUpRight className="h-4 w-4 mr-1" />
-                                                        )}
-                                                        {tx.account.currencySymbol}{Math.abs(tx.value).toFixed(2)}
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
-                        )}
-                    </div>
-                </div>
-
-                <div className="col-span-12 lg:col-span-4 bg-white rounded-xl p-6 shadow-sm text-center">
-                    <div className="flex justify-center">
-                        <Image src={customerService} alt="Support" width={120} height={120} />
-                    </div>
-                    <h2 className="mt-4 text-2xl font-bold text-[#01162c]">Need Help?</h2>
-                    <p className="mt-2 text-sm text-[#8f939f]">
-                        Our customer support team is available 24/7. For any queries, please visit our Support Portal or view our
-                        FAQ
-                    </p>
-                    <Button className="mt-6 w-full rounded-md bg-[#01162c] px-4 py-3 text-white hover:bg-opacity-90 transition-colors">
-                        View FAQ
-                    </Button>
+            <div className="bg-white rounded-xl shadow-sm p-3">
+                <div className="h-8 w-64 bg-gray-200 rounded mb-4 mx-6"></div>
+                <div className="p-6 space-y-4">
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="h-16 bg-gray-200 rounded"></div>
+                    ))}
                 </div>
             </div>
         </div>
     );
-};
+}
 
-export default Analytics;
+export default function AnalyticsLayout() {
+    const [activeTab, setActiveTab] = useState("income");
+    const [isLoading, setIsLoading] = useState(true);
+    const [incomeData, setIncomeData] = useState<Transaction[]>([]);
+    const [expenseData, setExpenseData] = useState<Transaction[]>([]);
+    const [monthlyIncomeData, setMonthlyIncomeData] = useState<MonthlyDataResponse>({
+        data: [],
+        currencySymbol: "$",
+        maxValue: 0
+    });
+    const [monthlyExpenseData, setMonthlyExpenseData] = useState<MonthlyDataResponse>({
+        data: [],
+        currencySymbol: "$",
+        maxValue: 0
+    });
+
+
+    useEffect(() => {
+        async function fetchAllData() {
+            setIsLoading(true);
+            try {
+                const [
+                    incomeResult,
+                    expenseResult,
+                    monthlyIncomeResult,
+                    monthlyExpenseResult
+                ] = await Promise.all([
+                    getIncomeTransactions(),
+                    getSpendingTransactions(),
+                    getMonthlyIncomeData(9),
+                    getMonthlyExpenseData(9)
+                ]);
+
+                setIncomeData((incomeResult.success && incomeResult.transactions
+                    ? incomeResult.transactions
+                    : []) as Transaction[]);
+
+                setExpenseData((expenseResult.success && expenseResult.transactions
+                    ? expenseResult.transactions
+                    : []) as Transaction[]);
+                setMonthlyIncomeData(monthlyIncomeResult);
+                setMonthlyExpenseData(monthlyExpenseResult);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        fetchAllData();
+    }, []);
+
+    return (
+        <div className="space-y-8 p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h1 className="text-2xl font-bold transition-all duration-300">
+                    {activeTab === "income" ? "Income Analysis" : "Expense Analysis"}
+                </h1>
+
+                <div className="flex relative overflow-hidden rounded-md bg-[#B1C3D7] p-3">
+                    <motion.div
+                        className="absolute top-1.5 bottom-1.5 rounded-md bg-[#01162c] z-0"
+                        animate={{
+                            left: activeTab === "income" ? "3px" : "50%",
+                            right: activeTab === "income" ? "50%" : "3px",
+                        }}
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+
+                    <Button
+                        className={`relative z-10 mr-6 px-7 py-0 transition-colors duration-200 border-none hover:bg-transparent focus:ring-0 ${activeTab === "income"
+                            ? "text-white hover:text-white"
+                            : "text-white"
+                            }`}
+                        onClick={() => setActiveTab("income")}
+                        variant="ghost"
+                    >
+                        Income
+                    </Button>
+
+                    <Button
+                        className={`relative z-10 px-7 py-0 transition-colors duration-200 border-none hover:bg-transparent focus:ring-0 ${activeTab === "expense"
+                            ? "text-white hover:text-white"
+                            : "text-white"
+                            }`}
+                        onClick={() => setActiveTab("expense")}
+                        variant="ghost"
+                    >
+                        Expenses
+                    </Button>
+                </div>
+            </div>
+
+            {isLoading ? (
+                <SkeletonAnalytics />
+            ) : (
+                <motion.div
+                    className="will-change-opacity"
+                    initial={{ opacity: 0.6 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.15 }}
+                >
+                    {activeTab === "income" ? (
+                        <>
+                            <SyncButton />
+                            <TransactionAnalyticsView
+                                type="income"
+                                transactions={incomeData}
+                                monthlyData={monthlyIncomeData}
+                                categoryColors={categoryColors}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <SyncButton />
+                            <TransactionAnalyticsView
+                                type="expense"
+                                transactions={expenseData}
+                                monthlyData={monthlyExpenseData}
+                                categoryColors={categoryColors}
+                            />
+                        </>
+                    )}
+                </motion.div>
+            )}
+        </div>
+    );
+}

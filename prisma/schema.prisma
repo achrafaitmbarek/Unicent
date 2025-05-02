@@ -17,6 +17,10 @@ model User {
   accounts      Account[]
   bankConnections BankConnection[]
   financialGoals FinancialGoal[]
+  financialTips FinancialTip[]
+  // this is new 
+  financialReports FinancialReport[] 
+  
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -51,6 +55,7 @@ model BankAccount {
   iban           String
   currencyId     String
   currencySymbol String
+  lastSyncedTransactionDate DateTime?
 
   connectionId   String
   connection     BankConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
@@ -95,8 +100,20 @@ model Transaction {
   @@index([date])
 }
 enum TransactionCategory {
-  SUBSCRIPTION
+
+  SALARY
   INVESTING
+  BUSINESS_INCOME
+  RENTAL_INCOME
+  FREELANCE
+  REFUND
+  PENSION
+  DIVIDEND
+  GIFT_RECEIVED
+  INTEREST
+
+
+  SUBSCRIPTION
   GROCERIES
   SHOPPING
   DINING
@@ -106,7 +123,10 @@ enum TransactionCategory {
   HOUSING
   HEALTHCARE  
   EDUCATION
+  
+
   TRAVEL
+  TRANSFER
   OTHER
 }
 
@@ -124,6 +144,28 @@ model FinancialGoal {
 
   user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+enum TipType {
+  GOAL_BASED
+  DAILY_INSIGHT
+  SPIKE
+}
+model FinancialTip {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  isLiked     Boolean?
+  type        TipType  @default(DAILY_INSIGHT)
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([type])
+}
+
 enum Category {
   TRAVEL
   EMERGENCY
@@ -179,3 +221,48 @@ model VerificationToken {
   @@id([identifier, token])
 }
  
+ model FinancialReport {
+  id          String   @id @default(cuid())
+  title       String   
+  month       Int      
+  year        Int      
+  
+
+  totalIncome     Float
+  totalExpenses   Float
+  savingsRate     Float   
+  
+  spendingBreakdown Json  
+  
+
+  predictedIncome    Float
+  predictedExpenses  Float
+  
+  savingsTips        FinancialReportTip[]
+  
+
+  userId      String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, month, year]) 
+  @@index([userId])
+  @@index([month, year])
+}
+
+model FinancialReportTip {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  context     String? 
+
+  reportId    String
+  report      FinancialReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([reportId])
+}

@@ -13,7 +13,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
     return (
         <SidebarProvider>
             <AppSidebar />
-            <main className="w-full bg-[#f2f4fa]">
+            <main className="w-full bg-[#FAFAFA]">
                 <NavBar />
                 <SidebarTrigger />
                 {children}

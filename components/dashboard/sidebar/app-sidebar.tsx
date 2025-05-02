@@ -38,7 +38,7 @@ const data = {
                 },
                 {
                     title: "Saving Goals",
-                    url: "/dashboard/ai-insights/saving-goals",
+                    url: "/dashboard/ai-insights/financial-planning",
                 },
                 {
                     title: "Smart Budget",

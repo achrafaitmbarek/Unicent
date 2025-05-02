@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { TransactionCategory } from "@prisma/client";
 
 export async function getRecentTransactions(limit = 6) {
@@ -44,6 +44,7 @@ export async function getRecentTransactions(limit = 6) {
   }
 }
 
+
 export async function getIncomeTransactions(limit = 30) {
   try {
     const session = await auth();
@@ -51,41 +52,54 @@ export async function getIncomeTransactions(limit = 30) {
     if (!session?.user?.email) {
       return { success: false, error: "Not authenticated" };
     }
-
-    const transactions = await prisma.transaction.findMany({
-      where: {
-        flow: 'INCOME',
-        account: {
-          connection: {
-            user: {
-              email: session.user.email
+    
+    const getIncomeTransactionsForUser = unstable_cache(
+      async (email: string, queryLimit: number) => {
+        console.log("Fetching income transactions for user:", email);
+        return await prisma.transaction.findMany({
+          where: {
+            flow: 'INCOME',
+            account: {
+              connection: {
+                user: {
+                  email: email
+                }
+              }
             }
-          }
-        }
+          },
+          include: {
+            account: {
+              select: {
+                name: true,
+                currencySymbol: true,
+                number: true
+              }
+            }
+          },
+          orderBy: {
+            date: 'desc'
+          },
+          take: queryLimit
+        });
       },
-      include: {
-        account: {
-          select: {
-            name: true,
-            currencySymbol: true,
-            number: true
-          }
-        }
-      },
-      orderBy: {
-        date: 'desc'
-      },
-      take: limit
-    });
+      [`income-transactions-${session.user.email}-${limit}`],
+      {
+        revalidate: 300,
+        tags: ['income-transactions']
+      }
+    );
 
+    // Call the cached function
+    const transactions = await getIncomeTransactionsForUser(session.user.email, limit);
     return { success: true, transactions };
+    
   } catch (error) {
     console.error("Error fetching income transactions:", error);
     return { success: false, error: "Failed to fetch income transactions" };
   }
 }
 
-export async function getSpendingTransactions(limit = 30) {
+export async function getSpendingTransactions(limit = 31) {
   try {
     const session = await auth();
     
@@ -93,33 +107,45 @@ export async function getSpendingTransactions(limit = 30) {
       return { success: false, error: "Not authenticated" };
     }
 
-    const transactions = await prisma.transaction.findMany({
-      where: {
-        flow: 'EXPENSE',  
-        account: {
-          connection: {
-            user: {
-              email: session.user.email
+    const getSpendingTransactionsForUser = unstable_cache(
+      async (email: string, queryLimit: number) => {
+        return await prisma.transaction.findMany({
+          where: {
+            flow: 'EXPENSE',
+            account: {
+              connection: {
+                user: {
+                  email: email
+                }
+              }
             }
-          }
-        }
+          },
+          include: {
+            account: {
+              select: {
+                name: true,
+                currencySymbol: true,
+                number: true
+              }
+            }
+          },
+          orderBy: {
+            date: 'desc'
+          },
+          take: queryLimit
+        });
       },
-      include: {
-        account: {
-          select: {
-            name: true,
-            currencySymbol: true,
-            number: true
-          }
-        }
-      },
-      orderBy: {
-        date: 'desc'
-      },
-      take: limit
-    });
+      [`expense-transactions-${session.user.email}-${limit}`],
+      {
+        revalidate: 300,
+        tags: ['expense-transactions']
+      }
+    );
 
+    // Call the cached function
+    const transactions = await getSpendingTransactionsForUser(session.user.email, limit);
     return { success: true, transactions };
+    
   } catch (error) {
     console.error("Error fetching spending transactions:", error);
     return { success: false, error: "Failed to fetch spending transactions" };
@@ -169,6 +195,10 @@ export async function updateTransactionCategory(
   revalidatePath('/dashboard/analytics')
   revalidatePath('/dashboard/analytics/incomes')
   revalidatePath('/dashboard/analytics/spendings')
+  revalidateTag('income-transactions');
+  revalidateTag('expense-transactions');
+  revalidateTag('income-data');
+  revalidateTag('expense-data');
   
   return { success: true }
 }

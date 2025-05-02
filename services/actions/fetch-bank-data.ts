@@ -3,6 +3,7 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { storeBankAccounts, storeTransactions } from './store-bank-data';
+import { Transaction } from '@/types';
 
 
 
@@ -95,14 +96,39 @@ export async function fetchAllTransactions(accountId: string) {
     if (!connection || !connection.accessToken) {
       throw new Error('No active bank connection found');
     }
-    const today = new Date();
-    const threeMonthsAgo = new Date(today);
-    threeMonthsAgo.setMonth(today.getMonth() - 3);
+
+    // Get the stored account to check lastSyncedTransactionDate
+    const storedAccount = await prisma.bankAccount.findUnique({
+      where: {
+        connectionId_id: {
+          connectionId: connection.id,
+          id: parseInt(accountId, 10)
+        }
+      }
+    });
+
+    if (!storedAccount) {
+      throw new Error('Account not found');
+    }
+
+    // Determine start date based on last sync date
+    let startDate: Date;
+    if (storedAccount.lastSyncedTransactionDate) {
+      startDate = new Date(storedAccount.lastSyncedTransactionDate);
+      startDate.setDate(startDate.getDate() - 1); 
+      console.log(`Using last sync date: ${startDate.toISOString().split('T')[0]} for account ${accountId}`);
+    } else {
+      startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 3);
+      console.log(`No previous sync date, using default 3 months for account ${accountId}`);
+    }
     
+    const today = new Date();
     const fmt = (d: Date) => d.toISOString().split('T')[0];
+    
     const url =
             `https://unicenttest-sandbox.biapi.pro/2.0/users/me/accounts/${accountId}/transactions` +
-            `?min_date=${fmt(threeMonthsAgo)}` +
+            `?min_date=${fmt(startDate)}` +
             `&max_date=${fmt(today)}` +
             `&limit=1000`;  
     
@@ -119,22 +145,35 @@ export async function fetchAllTransactions(accountId: string) {
     }
 
     const data = await response.json();
-    if (data.transactions) {
-      const storedAccount = await prisma.bankAccount.findUnique({
-        where: {
-          connectionId_id: {
-            connectionId: connection.id,
-            id: parseInt(accountId, 10)
-          }
+    let newTransactionsCount = 0;
+    
+    if (data.transactions && data.transactions.length > 0) {
+      await storeTransactions(storedAccount.pk, data.transactions);
+      newTransactionsCount = data.transactions.length;
+      
+      // Find the latest transaction date
+      let latestDate = startDate;
+      data.transactions.forEach((tx: Transaction) => {
+        const txDate = new Date(tx.date);
+        if (txDate > latestDate) {
+          latestDate = txDate;
         }
       });
-      if (storedAccount) {
-        await storeTransactions(storedAccount.pk, data.transactions);
-      }
+      
+      // Update the last synced transaction date
+      await prisma.bankAccount.update({
+        where: { pk: storedAccount.pk },
+        data: { lastSyncedTransactionDate: latestDate }
+      });
+      
+      console.log(`Synced ${newTransactionsCount} new transactions for account ${accountId}`);
+    } else {
+      console.log(`No new transactions found for account ${accountId}`);
     }
     
     return {
       success: true,
+      newTransactionsCount,
       transactions: data.transactions || [],
       metadata: {
         first_date: data.first_date,
@@ -160,6 +199,9 @@ export async function syncBankData() {
       return { success: false, error: accountsResult.error || "Failed to fetch accounts" };
     }
 
+    let totalNewTransactions = 0;
+    let accountsUpdated = 0;
+    
     if (accountsResult.connectionId) {
       const accounts = await prisma.bankAccount.findMany({
         where: {
@@ -169,14 +211,26 @@ export async function syncBankData() {
       
       for (const account of accounts) {
         try {
-          await fetchAllTransactions(account.id.toString());
+          const result = await fetchAllTransactions(account.id.toString());
+          
+          if (result.success && (result.newTransactionsCount ?? 0) > 0) {
+            totalNewTransactions += result.newTransactionsCount ?? 0;
+            accountsUpdated++;
+          }
         } catch (err) {
           console.error(`Error fetching transactions for account ${account.id}:`, err);
         }
       }
     }
     
-    return { success: true };
+    return { 
+      success: true,
+      stats: {
+        newTransactions: totalNewTransactions,
+        accountsUpdated: accountsUpdated,
+        lastSynced: new Date()
+      }
+    };
   } catch (error) {
     console.error("Sync error:", error);
     return { 

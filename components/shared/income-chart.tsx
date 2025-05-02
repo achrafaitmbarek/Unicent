@@ -14,7 +14,7 @@ interface IncomeChartProps {
     maxValue?: number;
 }
 
-export function IncomeChart({ data = [], currencySymbol = '$', maxValue: propMaxValue }: IncomeChartProps) {
+export function IncomeChart({ data = [], currencySymbol = '€', maxValue: propMaxValue }: IncomeChartProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -32,7 +32,6 @@ export function IncomeChart({ data = [], currencySymbol = '$', maxValue: propMax
         canvas.style.width = `${rect.width}px`;
         canvas.style.height = `${rect.height}px`;
 
-        // Use real data or fallback to empty array
         const months = data.length > 0 ? data.map(item => item.month) : ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"];
         const values = data.length > 0
             ? data.map(item => (item.income !== undefined ? item.income : item.expense ?? 0))
@@ -47,13 +46,11 @@ export function IncomeChart({ data = [], currencySymbol = '$', maxValue: propMax
 
         ctx.clearRect(0, 0, chartWidth, chartHeight);
 
-        // Y-axis labels
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
         ctx.font = "10px Arial";
         ctx.fillStyle = "#8993a4";
 
-        // Generate y-axis labels based on maxValue
         const yLabelCount = 5;
         const yLabels = Array.from({ length: yLabelCount }, (_, i) => {
             const value = (maxValue * i / (yLabelCount - 1)).toFixed(0);
@@ -66,7 +63,6 @@ export function IncomeChart({ data = [], currencySymbol = '$', maxValue: propMax
             ctx.fillText(label, padding.left - 5, y);
         });
 
-        // X-axis labels (months)
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
         months.forEach((month, i) => {
@@ -74,7 +70,6 @@ export function IncomeChart({ data = [], currencySymbol = '$', maxValue: propMax
             ctx.fillText(month, x, chartHeight - padding.bottom + 5);
         });
 
-        // Highlight current month (or the latest month in data)
         const currentMonthIndex = months.length - 1;
         if (currentMonthIndex !== -1) {
             const x = padding.left + (currentMonthIndex / (months.length - 1)) * graphWidth;
@@ -88,7 +83,6 @@ export function IncomeChart({ data = [], currencySymbol = '$', maxValue: propMax
 
             const y = padding.top + graphHeight - (values[currentMonthIndex] / maxValue) * graphHeight;
 
-            // Show amount for current month
             ctx.fillStyle = "#01162c";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
@@ -98,7 +92,6 @@ export function IncomeChart({ data = [], currencySymbol = '$', maxValue: propMax
                 : values[currentMonthIndex].toFixed(0));
             ctx.fillText(formattedValue, x, padding.top - 10);
 
-            // Highlight point
             ctx.beginPath();
             ctx.arc(x, y, 4, 0, Math.PI * 2);
             ctx.fillStyle = "#01162c";
@@ -109,7 +102,6 @@ export function IncomeChart({ data = [], currencySymbol = '$', maxValue: propMax
             ctx.fill();
         }
 
-        // Draw chart area and line
         ctx.beginPath();
         ctx.moveTo(padding.left, padding.top + graphHeight);
 
@@ -140,7 +132,6 @@ export function IncomeChart({ data = [], currencySymbol = '$', maxValue: propMax
         ctx.fillStyle = gradient;
         ctx.fill();
 
-        // Draw line on top
         ctx.beginPath();
         values.forEach((value, i) => {
             const x = padding.left + (i / (values.length - 1)) * graphWidth;

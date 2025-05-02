@@ -1,6 +1,6 @@
 
 import { Input } from "@/components/ui/input";
-import { LogOut, Bell } from "lucide-react"; // Import the search icon from react-icons
+import { LogOut, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Avatar,

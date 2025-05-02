@@ -1,6 +1,29 @@
 'use client';
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Briefcase, CarTaxiFront, GraduationCap, Home, Hospital, Plus, TicketsPlane } from "lucide-react";
+import {
+    AlertCircle,
+    Briefcase,
+    CarTaxiFront,
+    GraduationCap,
+    Home,
+    Hospital,
+    Plus,
+    TicketsPlane,
+    Heart,
+    Banknote,
+    PalmtreeIcon,
+    Building2,
+    Smartphone,
+    Gift,
+    Baby,
+    PaintBucket,
+    TrendingUp,
+    Heart as HeartIcon,
+    Cat,
+    Dumbbell,
+    Film,
+    Calendar
+} from "lucide-react";
 import {
     Table,
     TableBody,
@@ -37,6 +60,7 @@ import {
 export default function FinancialPlanning() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [goals, setGoals] = useState<FinancialGoal[]>([]);
+    const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [goalToDelete, setGoalToDelete] = useState<string | null>(null);
@@ -56,6 +80,22 @@ export default function FinancialPlanning() {
             console.error("Failed to fetch goals:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedGoals.length === goals.length) {
+            setSelectedGoals([]);
+        } else {
+            setSelectedGoals(goals.map(goal => goal.id));
+        }
+    };
+
+    const toggleSelectGoal = (goalId: string) => {
+        if (selectedGoals.includes(goalId)) {
+            setSelectedGoals(selectedGoals.filter(id => id !== goalId));
+        } else {
+            setSelectedGoals([...selectedGoals, goalId]);
         }
     };
 
@@ -83,6 +123,34 @@ export default function FinancialPlanning() {
                 return <CarTaxiFront />;
             case "HEALTHCARE":
                 return <Hospital />;
+            case "WEDDING":
+                return <Heart />;
+            case "DEBT_PAYOFF":
+                return <Banknote />;
+            case "VACATION":
+                return <PalmtreeIcon />;
+            case "BUSINESS":
+                return <Building2 />;
+            case "TECHNOLOGY":
+                return <Smartphone />;
+            case "HOLIDAY":
+                return <Gift />;
+            case "CHILDREN":
+                return <Baby />;
+            case "HOME_IMPROVEMENT":
+                return <PaintBucket />;
+            case "INVESTMENT":
+                return <TrendingUp />;
+            case "CHARITY":
+                return <HeartIcon />;
+            case "PET":
+                return <Cat />;
+            case "FITNESS":
+                return <Dumbbell />;
+            case "ENTERTAINMENT":
+                return <Film />;
+            case "ANNIVERSARY":
+                return <Calendar />;
             default:
                 return <Plus />;
         }
@@ -199,15 +267,24 @@ export default function FinancialPlanning() {
 
             <div className="bg-white rounded-xl shadow-sm p-3">
                 <h2 className="text-xl font-medium text-[#01162c] p-6">Goals History</h2>
-                <div className="overflow-x-auto">
-                    <Table>
-                        <TableHeader className="bg-[#f6fafd]">
-                            <TableRow>
-                                <TableHead className="font-medium text-[#747682]">Goal Name</TableHead>
-                                <TableHead className="font-medium text-[#747682]">Target Amount</TableHead>
-                                <TableHead className="font-medium text-[#747682]">Achieved</TableHead>
-                                <TableHead className="font-medium text-[#747682]">Duration</TableHead>
-                                <TableHead className="font-medium text-[#747682]">Status</TableHead>
+
+                <div className="overflow-x-auto p-4">
+                    <Table className="rounded-xl overflow-hidden">
+                        <TableHeader className="border-b">
+                            <TableRow className="border-none bg-[#f6fafd]">
+                                <TableHead className="font-medium text-[#747682] bg-transparent w-10">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedGoals.length === goals.length && goals.length > 0}
+                                        onChange={toggleSelectAll}
+                                        className="rounded border-gray-300 text-primary focus:ring-primary/25"
+                                    />
+                                </TableHead>
+                                <TableHead className="font-medium text-[#747682] bg-transparent">Goal Name</TableHead>
+                                <TableHead className="font-medium text-[#747682] bg-transparent">Target Amount</TableHead>
+                                <TableHead className="font-medium text-[#747682] bg-transparent">Achieved</TableHead>
+                                <TableHead className="font-medium text-[#747682] bg-transparent">Duration</TableHead>
+                                <TableHead className="font-medium text-[#747682] bg-transparent">Status</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -257,12 +334,20 @@ export default function FinancialPlanning() {
                                     }
 
                                     return (
-                                        <TableRow key={goal.id}>
-                                            <TableCell className="font-medium">{goal.name}</TableCell>
-                                            <TableCell>{formattedTarget}</TableCell>
-                                            <TableCell>{formattedAchieved}</TableCell>
-                                            <TableCell>{duration}</TableCell>
-                                            <TableCell>
+                                        <TableRow key={goal.id} className="hover:bg-gray-50/50">
+                                            <TableCell className="py-5" >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedGoals.includes(goal.id)}
+                                                    onChange={() => toggleSelectGoal(goal.id)}
+                                                    className="rounded border-gray-300 text-primary focus:ring-primary/25"
+                                                />
+                                            </TableCell>
+                                            <TableCell className="font-medium py-4">{goal.name}</TableCell>
+                                            <TableCell className="py-5">{formattedTarget}</TableCell>
+                                            <TableCell className="py-5">{formattedAchieved}</TableCell>
+                                            <TableCell className="py-5">{duration}</TableCell>
+                                            <TableCell className="py-5">
                                                 <span className={`px-3 py-1 rounded-full text-sm ${statusClass}`}>
                                                     {status}
                                                 </span>

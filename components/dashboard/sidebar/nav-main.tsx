@@ -126,21 +126,21 @@ export function NavMain({
                                     </SidebarMenuButton>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent className="mt-1">
-                                    <SidebarMenuSub className="ml-8 space-y-1 border-none">
+                                    <SidebarMenuSub className=" py-6 space-y-4 border-none shadow-xl rounded-lg mx-0">
                                         {item.items?.map((subItem) => {
                                             const isSubItemActive = pathname === subItem.url;
                                             return (
-                                                <SidebarMenuSubItem key={subItem.title}>
+                                                <SidebarMenuSubItem key={subItem.title} className="">
                                                     <SidebarMenuSubButton
                                                         asChild
-                                                        className={`px-3 py-2 rounded-md transition-colors text-sm
+                                                        className={`rounded-md transition-colors text-base
                                                          ${isSubItemActive
                                                                 ? 'bg-[#f2f4fa] text-[#01162c]'
                                                                 : 'text-[#64748b] hover:bg-[#f8f8fb]'}`}
                                                     >
                                                         <Link href={subItem.url} className="flex items-center">
                                                             {isSubItemActive && (
-                                                                <div className="h-1.5 w-1.5 bg-[#01162c] rounded-full mr-2"></div>
+                                                                <div className="h-2 w-2 bg-[#01162c] rounded-full mr-2"></div>
                                                             )}
                                                             <span className="block">{subItem.title}</span>
                                                         </Link>
