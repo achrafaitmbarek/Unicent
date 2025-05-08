@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { TransactionCategory } from "@prisma/client";
 
 export async function getRecentTransactions(limit = 6) {
@@ -45,7 +45,8 @@ export async function getRecentTransactions(limit = 6) {
 }
 
 
-export async function getIncomeTransactions(limit = 30) {
+
+export async function getIncomeTransactions(limit = 30, months = 3) {
   try {
     const session = await auth();
     
@@ -53,12 +54,17 @@ export async function getIncomeTransactions(limit = 30) {
       return { success: false, error: "Not authenticated" };
     }
     
-    const getIncomeTransactionsForUser = unstable_cache(
+    // Calculate date range based on months parameter
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - months);
+    
+    const getIncomeTransactionsForUser = 
       async (email: string, queryLimit: number) => {
         console.log("Fetching income transactions for user:", email);
         return await prisma.transaction.findMany({
           where: {
             flow: 'INCOME',
+            date: { gte: startDate }, // Only get transactions within specified months
             account: {
               connection: {
                 user: {
@@ -81,15 +87,7 @@ export async function getIncomeTransactions(limit = 30) {
           },
           take: queryLimit
         });
-      },
-      [`income-transactions-${session.user.email}-${limit}`],
-      {
-        revalidate: 300,
-        tags: ['income-transactions']
       }
-    );
-
-    // Call the cached function
     const transactions = await getIncomeTransactionsForUser(session.user.email, limit);
     return { success: true, transactions };
     
@@ -99,7 +97,7 @@ export async function getIncomeTransactions(limit = 30) {
   }
 }
 
-export async function getSpendingTransactions(limit = 31) {
+export async function getSpendingTransactions(limit = 31, months = 3) {
   try {
     const session = await auth();
     
@@ -107,11 +105,15 @@ export async function getSpendingTransactions(limit = 31) {
       return { success: false, error: "Not authenticated" };
     }
 
-    const getSpendingTransactionsForUser = unstable_cache(
-      async (email: string, queryLimit: number) => {
+    // Calculate date range based on months parameter
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - months);
+
+    const getSpendingTransactionsForUser = async (email: string, queryLimit: number) => {
         return await prisma.transaction.findMany({
           where: {
             flow: 'EXPENSE',
+            date: { gte: startDate }, // Only get transactions within specified months
             account: {
               connection: {
                 user: {
@@ -134,18 +136,9 @@ export async function getSpendingTransactions(limit = 31) {
           },
           take: queryLimit
         });
-      },
-      [`expense-transactions-${session.user.email}-${limit}`],
-      {
-        revalidate: 300,
-        tags: ['expense-transactions']
       }
-    );
-
-    // Call the cached function
     const transactions = await getSpendingTransactionsForUser(session.user.email, limit);
     return { success: true, transactions };
-    
   } catch (error) {
     console.error("Error fetching spending transactions:", error);
     return { success: false, error: "Failed to fetch spending transactions" };
@@ -191,15 +184,7 @@ export async function updateTransactionCategory(
       updatedAt: new Date()
     }
   })
-
   revalidatePath('/dashboard/analytics')
-  revalidatePath('/dashboard/analytics/incomes')
-  revalidatePath('/dashboard/analytics/spendings')
-  revalidateTag('income-transactions');
-  revalidateTag('expense-transactions');
-  revalidateTag('income-data');
-  revalidateTag('expense-data');
-  
   return { success: true }
 }
 

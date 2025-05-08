@@ -22,7 +22,9 @@ import {
     Cat,
     Dumbbell,
     Film,
-    Calendar
+    Calendar,
+    ArrowUpRight,
+    LockKeyhole
 } from "lucide-react";
 import {
     Table,
@@ -43,7 +45,7 @@ import {
     DialogTrigger
 } from "@/components/ui/dialog";
 import { GoalCard } from "@/components/shared/GoalCard";
-import { Category, FinancialGoal } from "@prisma/client";
+import { Category, FinancialGoal, TipType } from "@prisma/client";
 import { deleteFinancialGoal, getUserFinancialGoals } from "@/services/actions/financial-goal";
 import { toast } from "sonner";
 import {
@@ -57,6 +59,13 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import BrainAtom from "@/assets/tips-Cards/BrainAtom.png";
+import Faqs from "@/assets/tips-Cards/Faqs.png";
+import TargetGoal from "@/assets/tips-Cards/TargetGoal.png";
+import Image from "next/image";
+import Link from "next/link";
+import { FinancialTip, getUserFinancialTips } from "@/services/actions/financial-tips";
+
 export default function FinancialPlanning() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [goals, setGoals] = useState<FinancialGoal[]>([]);
@@ -64,6 +73,9 @@ export default function FinancialPlanning() {
     const [loading, setLoading] = useState(true);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [goalToDelete, setGoalToDelete] = useState<string | null>(null);
+    const [financialTips, setFinancialTips] = useState<FinancialTip[]>([]);
+    const [tipsLoading, setTipsLoading] = useState(true);
+    const [isPremium, setIsPremium] = useState(false);
     const confirmDeleteGoal = (goalId: string) => {
         setGoalToDelete(goalId);
         setDeleteDialogOpen(true);
@@ -101,6 +113,23 @@ export default function FinancialPlanning() {
 
     useEffect(() => {
         fetchGoals();
+    }, []);
+
+    useEffect(() => {
+        async function fetchTips() {
+            setTipsLoading(true);
+            try {
+                const tips = await getUserFinancialTips(TipType.GOAL_BASED);
+                console.log('Financial tips loaded:', tips);
+                setFinancialTips(tips);
+            } catch (error) {
+                console.error('Error loading tips:', error);
+            } finally {
+                setTipsLoading(false);
+            }
+        }
+
+        fetchTips();
     }, []);
 
     const getRandomProgress = (goalId: string) => {
@@ -156,6 +185,7 @@ export default function FinancialPlanning() {
         }
     };
 
+
     const handleConfirmDelete = async () => {
         if (!goalToDelete) return;
 
@@ -178,11 +208,12 @@ export default function FinancialPlanning() {
         } finally {
             setDeleteDialogOpen(false);
             setGoalToDelete(null);
+            setIsPremium(false);
         }
     };
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="container">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold text-primary">Create Budget & Goals</h1>
 
@@ -364,6 +395,149 @@ export default function FinancialPlanning() {
                             )}
                         </TableBody>
                     </Table>
+                </div>
+            </div>
+            <div className=" mx-auto p-4  rounded-lg">
+                <h1 className="text-2xl font-bold mb-6">AI Tips for Goal Achievement</h1>
+
+                <div className="space-y-4">
+                    {tipsLoading ? (
+                        <div className="flex items-center justify-between p-4 bg-white rounded-lg animate-pulse">
+                            <div className="flex items-center gap-4">
+                                <div className="h-14 w-14 rounded-lg bg-purple-100"></div>
+                                <div className="space-y-2">
+                                    <div className="h-4 w-40 bg-gray-200 rounded"></div>
+                                    <div className="h-3 w-64 bg-gray-100 rounded"></div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+
+                            {financialTips.slice(0, 2).map((tip, index) => {
+                                let tipImage = BrainAtom;
+                                let bgColor = "bg-purple-100";
+
+                                if (index % 3 === 0) {
+                                    tipImage = BrainAtom;
+                                    bgColor = "bg-purple-100";
+                                } else if (index % 3 === 1) {
+                                    tipImage = TargetGoal;
+                                    bgColor = "bg-fuchsia-100";
+                                } else {
+                                    tipImage = Faqs;
+                                    bgColor = "bg-blue-100";
+                                }
+
+                                return (
+                                    <div
+                                        key={tip.id}
+                                        className={`flex items-center justify-between p-4 bg-white rounded-lg mb-4 ${index % 2 === 1 ? 'border border-gray-100' : ''}`}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={`h-14 w-14 rounded-lg ${bgColor} overflow-hidden flex items-center justify-center`}>
+                                                <Image src={tipImage} width={56} height={56} alt="" className="object-cover" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-lg text-gray-900">{tip.title}</h3>
+                                                <p className="text-gray-500 text-sm">
+                                                    {/* {tip.description.length > 120
+                                                        ? `${tip.description.substring(0, 120)}...`
+                                                        : tip.description} */}
+                                                    {tip.description}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <Link className="text-[#675AE7]" href={`/dashboard/ai-insights/details/${tip.id}`}>
+                                            <ArrowUpRight className="h-5 w-5" />
+                                        </Link>
+                                    </div>
+                                );
+                            })}
+                            {!isPremium && financialTips.length > 2 && (
+                                <>
+                                    {financialTips.slice(2, 4).map((tip, index) => {
+                                        let tipImage = BrainAtom;
+                                        let bgColor = "bg-purple-100";
+
+                                        if ((index + 2) % 3 === 0) {
+                                            tipImage = BrainAtom;
+                                            bgColor = "bg-purple-100";
+                                        } else if ((index + 2) % 3 === 1) {
+                                            tipImage = TargetGoal;
+                                            bgColor = "bg-fuchsia-100";
+                                        } else {
+                                            tipImage = Faqs;
+                                            bgColor = "bg-blue-100";
+                                        }
+
+                                        return (
+                                            <div
+                                                key={tip.id}
+                                                className={`flex items-center justify-between p-4 bg-white rounded-lg mb-4 ${(index + 2) % 2 === 1 ? 'border border-gray-100' : ''} relative overflow-hidden`}
+                                            >
+                                                <div className="flex items-center gap-4 filter blur-sm">
+                                                    <div className={`h-14 w-14 rounded-lg ${bgColor} overflow-hidden flex items-center justify-center`}>
+                                                        <Image src={tipImage} width={56} height={56} alt="" className="object-cover" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-lg text-gray-900">{tip.title}</h3>
+                                                        <p className="text-gray-500 text-sm">
+                                                            {tip.description.length > 120
+                                                                ? `${tip.description.substring(0, 120)}...`
+                                                                : tip.description}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="absolute inset-0 flex items-center justify-center opacity-40">
+                                                    <LockKeyhole className="h-8 w-8 text-[#675AE7]" />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+
+                                    <div className="bg-gradient-to-r from-[#675AE7] to-[#8A7CF7] rounded-lg p-4 mt-6 mb-4 shadow-sm">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center">
+                                                    <LockKeyhole className="h-5 w-5 text-white" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-white font-bold text-base">
+                                                        Unlock Premium Insights
+                                                    </h3>
+                                                    <p className="text-white/80 text-xs">
+                                                        {financialTips.length - 2} more AI tips to help achieve your goals
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <Button variant={'default'} className="py-5 px-6 text-sm rounded-lg">
+                                                    Upgrade
+                                                    <ArrowUpRight className="h-3.5 w-3.5" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                            <div className="flex items-center justify-between p-4 bg-white rounded-lg">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-14 w-14 rounded-lg bg-purple-100 overflow-hidden">
+                                        <Image src={Faqs} width={56} height={56} alt="" className="object-cover" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-lg text-gray-900">Frequently Asked Question (FAQs)</h3>
+                                        <p className="text-gray-500 text-sm">You have questions? We have answers!</p>
+                                    </div>
+                                </div>
+                                <Link className="text-violet-600" href={"/dashboard/help"}>
+                                    <ArrowUpRight className="h-5 w-5" />
+                                </Link>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

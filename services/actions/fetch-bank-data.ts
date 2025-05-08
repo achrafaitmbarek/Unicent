@@ -52,7 +52,7 @@ export async function fetchBankAccounts() {
 
     await prisma.bankConnection.update({
       where: { id: connection.id },
-      data: { lastRefresh: new Date() }
+      data:  { lastRefresh: new Date() }
     });
 
     return {
@@ -97,7 +97,6 @@ export async function fetchAllTransactions(accountId: string) {
       throw new Error('No active bank connection found');
     }
 
-    // Get the stored account to check lastSyncedTransactionDate
     const storedAccount = await prisma.bankAccount.findUnique({
       where: {
         connectionId_id: {
@@ -111,7 +110,6 @@ export async function fetchAllTransactions(accountId: string) {
       throw new Error('Account not found');
     }
 
-    // Determine start date based on last sync date
     let startDate: Date;
     if (storedAccount.lastSyncedTransactionDate) {
       startDate = new Date(storedAccount.lastSyncedTransactionDate);
@@ -151,7 +149,6 @@ export async function fetchAllTransactions(accountId: string) {
       await storeTransactions(storedAccount.pk, data.transactions);
       newTransactionsCount = data.transactions.length;
       
-      // Find the latest transaction date
       let latestDate = startDate;
       data.transactions.forEach((tx: Transaction) => {
         const txDate = new Date(tx.date);
@@ -160,7 +157,6 @@ export async function fetchAllTransactions(accountId: string) {
         }
       });
       
-      // Update the last synced transaction date
       await prisma.bankAccount.update({
         where: { pk: storedAccount.pk },
         data: { lastSyncedTransactionDate: latestDate }

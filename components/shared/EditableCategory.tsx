@@ -4,7 +4,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { updateTransactionCategory } from "@/services/actions/transactions"
-import { useRouter } from "next/navigation"
+
 
 const categories = [
 
@@ -37,14 +37,15 @@ const categories = [
 
 export function EditableCategory({
     transactionId,
-    initialCategory
+    initialCategory,
+    onUpdated,
 }: {
     transactionId: string,
-    initialCategory: string
+    initialCategory: string,
+    onUpdated: () => void
 }) {
     const [category, setCategory] = useState(initialCategory)
     const [isLoading, setIsLoading] = useState(false)
-    const router = useRouter()
 
     const handleCategoryChange = async (newCategory: string) => {
         if (newCategory === category) return
@@ -54,7 +55,7 @@ export function EditableCategory({
             await updateTransactionCategory(transactionId, newCategory)
             setCategory(newCategory)
             toast.success("Category updated")
-            router.refresh()
+            onUpdated()
         } catch {
             toast.error("Failed to update category")
             setCategory(initialCategory)

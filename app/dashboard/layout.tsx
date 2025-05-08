@@ -13,10 +13,16 @@ export default async function Layout({ children }: { children: React.ReactNode }
     return (
         <SidebarProvider>
             <AppSidebar />
-            <main className="w-full bg-[#FAFAFA]">
-                <NavBar />
-                <SidebarTrigger />
-                {children}
+            <main className="w-full bg-[#FAFAFA] flex flex-col">
+                <div className="sticky top-0 left-0 right-0 z-10">
+                    <NavBar />
+                    <div className="absolute top-1/2 -translate-y-1/2 left-4">
+                        <SidebarTrigger />
+                    </div>
+                </div>
+                <div className="px-2  flex-grow">
+                    {children}
+                </div>
             </main>
             <Toaster richColors />
         </SidebarProvider>

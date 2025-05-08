@@ -1,11 +1,11 @@
 "use client"
 
-import { ChevronDown, MoreHorizontal } from "lucide-react"
+import { MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { IncomeChart } from "@/components/shared/income-chart"
 import { CategoryDonut } from "@/components/shared/CategoryDonut"
 import { EditableCategory } from "@/components/shared/EditableCategory"
-import { format } from "date-fns"
+import { format, } from "date-fns"
 import {
     Table,
     TableBody,
@@ -14,7 +14,14 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { useMemo } from "react"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { useMemo, useState } from "react"
 
 type Transaction = {
     pk: string;
@@ -44,6 +51,7 @@ type TransactionAnalyticsViewProps = {
     transactions: Transaction[];
     monthlyData: MonthlyData;
     categoryColors: Record<string, string>;
+    onCategoryUpdated: () => void;
 }
 
 function getCategoryFromTransaction(wording: string) {
@@ -62,22 +70,67 @@ function getCategoryFromTransaction(wording: string) {
     }
 }
 
+
 export function TransactionAnalyticsView({
     type,
     transactions,
     monthlyData,
-    categoryColors
+    categoryColors,
+    onCategoryUpdated
 }: TransactionAnalyticsViewProps) {
+    // Extract unique months from transactions
+    const availableMonths = useMemo(() => {
+        const months = new Set<string>();
 
+        // Add "All" option
+        months.add("all|All Months");
+
+        // Add months from transactions
+        transactions.forEach(tx => {
+            const date = new Date(tx.date);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            const monthLabel = format(date, "MMMM yyyy");
+            months.add(`${monthKey}|${monthLabel}`);
+        });
+
+        return Array.from(months)
+            .map(item => {
+                const [key, label] = item.split("|");
+                return { key, label };
+            })
+            .sort((a, b) => {
+                if (a.key === "all") return -1;
+                if (b.key === "all") return 1;
+                return b.key.localeCompare(a.key);
+            });
+    }, [transactions]);
+
+    // State for selected month (default to "all")
+    const [selectedMonth, setSelectedMonth] = useState("all");
+
+    // Filter transactions based on selected month
+    const filteredTransactions = useMemo(() => {
+        if (selectedMonth === "all") {
+            return transactions;
+        }
+
+        return transactions.filter(tx => {
+            const date = new Date(tx.date);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            return monthKey === selectedMonth;
+        });
+    }, [transactions, selectedMonth]);
+
+    // Calculate category data based on filtered transactions
     const {
         categories,
         totalFormatted,
-        currentMonthAmount
     } = useMemo(() => {
         const categoriesMap = new Map();
         let total = 0;
 
-        transactions?.forEach(transaction => {
+        // Use filteredTransactions instead of all transactions
+        filteredTransactions.forEach(transaction => {
             const category = transaction.category ||
                 (type === "income"
                     ? getCategoryFromTransaction(transaction.wording)
@@ -93,6 +146,7 @@ export function TransactionAnalyticsView({
             }
         });
 
+        // Rest of the existing category calculation code...
         const categoryData = Array.from(categoriesMap).map(([name, value]) => ({
             name,
             value,
@@ -117,11 +171,11 @@ export function TransactionAnalyticsView({
             currencySymbol: symbol,
             currentMonthAmount: currentAmount
         };
-    }, [transactions, monthlyData, type, categoryColors]);
+    }, [filteredTransactions, monthlyData, type, categoryColors]);
 
     const title = type === "income" ? "Income" : "Expense";
     const colorClass = type === "income" ? "text-green-600" : "text-red-600";
-    const arrowColor = type === "income" ? "text-green-500" : "text-red-500";
+    // const arrowColor = type === "income" ? "text-green-500" : "text-red-500";
 
     return (
         <div className="space-y-8">
@@ -129,27 +183,26 @@ export function TransactionAnalyticsView({
                 <div className="bg-white p-6 rounded-lg shadow-sm">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-lg font-semibold">{title} Trend</h2>
-                        <Button className="flex items-center text-[#8993a4] text-sm">
-                            This month <ChevronDown className="h-4 w-4 ml-1" />
-                        </Button>
-                    </div>
-                    <div className="mb-4">
-                        <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bold">
-                                {monthlyData.currencySymbol}
-                                {(currentMonthAmount >= 1000
-                                    ? (currentMonthAmount / 1000).toFixed(1) + 'k'
-                                    : currentMonthAmount.toFixed(2))}
-                            </span>
-                            <span className="text-xs px-2 py-1 rounded-full bg-[#f2f4fa] text-[#8993a4]">
-                                <span className={arrowColor}>↑ 13%</span> VS Last Month
-                            </span>
-                        </div>
+
+                        {/* Month selector */}
+                        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                            <SelectTrigger className="w-[180px] h-9 text-sm border-[#edf2f6] bg-[#fafcfa] text-[#747682]">
+                                <SelectValue placeholder="Filter by month" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {availableMonths.map(month => (
+                                    <SelectItem key={month.key} value={month.key}>
+                                        {month.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="h-64">
                         <IncomeChart
                             data={monthlyData.data}
                             currencySymbol={monthlyData.currencySymbol}
+                            type={type}
                         />
                     </div>
                 </div>
@@ -158,17 +211,26 @@ export function TransactionAnalyticsView({
                     <CategoryDonut
                         data={categories}
                         centerText={totalFormatted}
-                        centerSubtext={`Total ${type}`}
-                        title={`${title} Categories`}
+                        centerSubtext={`Total ${selectedMonth === "all" ? "" : "Monthly"} ${type}`}
+                        title={`${title} Categories ${selectedMonth === "all" ? "" : "- " +
+                            availableMonths.find(m => m.key === selectedMonth)?.label}`}
                     />
                 </div>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm p-3">
-                <h2 className="text-xl font-medium text-[#01162c] p-6">{title} Transactions</h2>
+                <div className="flex justify-between items-center px-6 py-4">
+                    <h2 className="text-xl font-medium text-[#01162c]">
+                        {title} Transactions
+                        {selectedMonth !== "all" && ` - ${availableMonths.find(m => m.key === selectedMonth)?.label}`}
+                    </h2>
+                    <div className="text-sm text-[#747682]">
+                        {filteredTransactions.length} transactions
+                    </div>
+                </div>
                 <div className="overflow-x-auto">
-                    {transactions?.length === 0 ? (
-                        <div className="p-8 text-center text-gray-500">No {type} transactions found</div>
+                    {filteredTransactions?.length === 0 ? (
+                        <div className="p-8 text-center text-gray-500">No {type} transactions found for the selected period</div>
                     ) : (
                         <Table>
                             <TableHeader className="bg-[#f6fafd]">
@@ -182,7 +244,8 @@ export function TransactionAnalyticsView({
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {transactions?.map((transaction) => {
+                                {filteredTransactions?.map((transaction) => {
+                                    // Existing transaction row code...
                                     const txDate = new Date(transaction.date);
                                     const accountDisplay = transaction.account.number ?
                                         `...${transaction.account.number.slice(-4)}` :
@@ -205,6 +268,7 @@ export function TransactionAnalyticsView({
                                                             ? getCategoryFromTransaction(transaction.wording)
                                                             : "OTHER")
                                                     }
+                                                    onUpdated={onCategoryUpdated}
                                                 />
                                             </TableCell>
                                             <TableCell>

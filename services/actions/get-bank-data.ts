@@ -2,7 +2,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { startOfMonth, endOfMonth ,format} from "date-fns";
-import { unstable_cache } from 'next/cache';
 
 export async function getAccountBalance(){
     const session = await auth();
@@ -250,71 +249,61 @@ export async function getMonthlySpendData(numberOfMonths = 5) {
     };
   }
 
-    export async function getCategorySpendData() {
-    const session = await auth();
-    if (!session?.user?.email) {
-      throw new Error('Authentication required');
-    }
+  export async function getCategorySpendData(year?: number, month?: number) {
+    const session = await auth()
+    if (!session?.user?.email) throw new Error('Authentication required')
   
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
-    });
-    
-    if (!user) {
-      throw new Error('User not found');
-    }
+    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+    if (!user) throw new Error('User not found')
   
-    const totalExpenses = await prisma.transaction.aggregate({
+    // figure out the period
+    const now = new Date()
+    const y = year ?? now.getFullYear()
+    const m = month ?? now.getMonth() + 1   // 1–12
+    const firstDay = startOfMonth(new Date(y, m - 1))
+    const lastDay  = endOfMonth(new Date(y, m - 1))
+  
+    // total for this month
+    const totalAgg = await prisma.transaction.aggregate({
       where: {
         flow: 'EXPENSE',
-        account: {
-          connection: {
-            userId: user.id
-          }
-        }
+        date: { gte: firstDay, lte: lastDay },
+        account: { connection: { userId: user.id } }
       },
-      _sum: {
-        value: true
-      }
-    });
-    
-    const totalAmount = Math.abs(totalExpenses._sum.value || 0);
-    
-    const categoryData = await prisma.transaction.groupBy({
+      _sum: { value: true }
+    })
+    const totalAmount = Math.abs(totalAgg._sum.value || 0)
+  
+    // breakdown by category for this month
+    const raw = await prisma.transaction.groupBy({
       by: ['category'],
       where: {
         flow: 'EXPENSE',
-        account: {
-          connection: {
-            userId: user.id
-          }
-        }
+        date: { gte: firstDay, lte: lastDay },
+        account: { connection: { userId: user.id } }
       },
-      _sum: {
-        value: true
-      }
-    });
-    
-    const chartData = categoryData.map(cat => ({
-      name: cat.category,
-      value: Math.round((Math.abs(cat._sum.value || 0) / totalAmount) * 100),
-      amount: Math.abs(cat._sum.value || 0)
-    }))
-    .filter(cat => cat.value > 0) 
-    .sort((a, b) => b.value - a.value); 
-
+      _sum: { value: true }
+    })
+  
+    const categories = raw
+      .map(cat => ({
+        name: cat.category,
+        amount: Math.abs(cat._sum.value || 0),
+        value: Math.round((Math.abs(cat._sum.value || 0) / totalAmount) * 100)
+      }))
+      .filter(cat => cat.value > 0)
+      .sort((a, b) => b.value - a.value)
+  
     const firstAccount = await prisma.bankAccount.findFirst({
-      where: {
-        connection: { userId: user.id }
-      },
+      where: { connection: { userId: user.id } },
       select: { currencySymbol: true }
-    });
+    })
   
     return {
-      categories: chartData,
+      categories,
       total: totalAmount,
       currencySymbol: firstAccount?.currencySymbol || '$'
-    };
+    }
   }
 
   
@@ -335,7 +324,7 @@ export async function getMonthlySpendData(numberOfMonths = 5) {
       }
       
       // Wrap the expensive calculations in a cache function
-      const getMonthlyIncomeForUser = unstable_cache(
+      const getMonthlyIncomeForUser = 
         async (userId: string, months: number) => {
           console.log('Fetching monthly income data for user:', userId);
           const now = new Date();
@@ -385,18 +374,7 @@ export async function getMonthlySpendData(numberOfMonths = 5) {
             currencySymbol: firstAccount?.currencySymbol || '$',
             maxValue: Math.max(...monthlyData.map(item => item.income))
           };
-        },
-        // Cache key based on user ID and number of months
-        [`monthly-income-data-${user.id}-${numberOfMonths}`],
-        {
-          // Cache for 1 hour (3600 seconds)
-          revalidate: 3600,
-          // Tag for selective invalidation
-          tags: ['income-data']
         }
-      );
-    
-      // Call the cached function
       return await getMonthlyIncomeForUser(user.id, numberOfMonths);
   }
 
@@ -414,9 +392,7 @@ export async function getMonthlySpendData(numberOfMonths = 5) {
       throw new Error('User not found');
     }
     
-    // Wrap the expensive calculations in a cache function
-    const getMonthlyExpenseForUser = unstable_cache(
-      async (userId: string, months: number) => {
+    const getMonthlyExpenseForUser = async (userId: string, months: number) => {
         console.log('Fetching monthly expense data for user:', userId);
         const now = new Date();
         const monthlyData = [];
@@ -466,18 +442,9 @@ export async function getMonthlySpendData(numberOfMonths = 5) {
           currencySymbol: firstAccount?.currencySymbol || '$',
           maxValue: Math.max(...monthlyData.map(item => item.expense))
         };
-      },
-      // Cache key based on user ID and number of months
-      [`monthly-expense-data-${user.id}-${numberOfMonths}`],
-      {
-        // Cache for 1 hour (3600 seconds)
-        revalidate: 3600,
-        // Tag for selective invalidation
-        tags: ['expense-data']
       }
-    );
   
-    // Call the cached function
+
     return await getMonthlyExpenseForUser(user.id, numberOfMonths);
 }
 

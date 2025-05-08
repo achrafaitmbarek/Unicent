@@ -62,11 +62,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <Image src={logo} alt="logo" width={80} height={30} />
                 </div>
                 <NavMain items={data.navMain} />
-                <div className="flex flex-1 justify-center items-end w-full pb-6 mt-auto">
+                <div className="flex flex-1 justify-center items-center w-full mb-12">
                     <LaunchCard />
                 </div>
             </SidebarContent>
-            <SidebarRail className="bg-white border-r" />
+            <SidebarRail className="border-r" />
         </Sidebar>
     )
 }

@@ -57,9 +57,12 @@ export async function storeTransactions(
   console.log(`Processing ${transactions.length} transactions for account ${accountPk}`);
 
   const VALID_CATEGORIES = [
-    'SUBSCRIPTION', 'INVESTING', 'GROCERIES', 'SHOPPING',
-    'DINING', 'TRANSPORTATION', 'UTILITIES', 'ENTERTAINMENT',
-    'HOUSING', 'HEALTHCARE', 'EDUCATION', 'TRAVEL', 'OTHER'
+    'SALARY', 'INVESTING', 'BUSINESS_INCOME', 'RENTAL_INCOME', 
+    'FREELANCE', 'REFUND', 'PENSION', 'DIVIDEND', 
+    'GIFT_RECEIVED', 'INTEREST', 'SUBSCRIPTION', 'GROCERIES',
+    'SHOPPING', 'DINING', 'TRANSPORTATION', 'UTILITIES',
+    'ENTERTAINMENT', 'HOUSING', 'HEALTHCARE', 'EDUCATION',
+    'TRAVEL', 'TRANSFER', 'OTHER'
   ];
 
 

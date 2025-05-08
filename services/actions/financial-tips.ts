@@ -12,6 +12,7 @@ const anthropic = new Anthropic({
 });
 
 export type FinancialTip = {
+  id?: string;
   title: string;
   description: string;
   type?: TipType;
@@ -443,19 +444,19 @@ function createDailyInsightPrompt(data: { summary: string }): string {
 function getFallbackTips(): FinancialTip[] {
   return [
     {
-      title: "Track your expenses",
+      title: "Fallback Track your expenses",
       description: "Record all spending to identify trends and areas where you can cut back."
     },
     {
-      title: "Build emergency fund",
+      title: "Fallback Build emergency fund",
       description: "Save 3-6 months of expenses for unexpected financial challenges."
     },
     {
-      title: "Reduce dining out",
+      title: "Fallback Reduce dining out",
       description: "Cook more meals at home to save money and improve your health."
     },
     {
-      title: "Review subscriptions",
+      title: "Fallback Review subscriptions",
       description: "Cancel unused subscriptions and services to reduce monthly expenses."
     }
   ];

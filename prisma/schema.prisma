@@ -18,8 +18,10 @@ model User {
   bankConnections BankConnection[]
   financialGoals FinancialGoal[]
   financialTips FinancialTip[]
-  // this is new 
+  isPremium     Boolean         @default(false)
+  
   financialReports FinancialReport[] 
+  spendingReports SpendingOptimizationReport[]
   
 
   createdAt DateTime @default(now())
@@ -111,7 +113,6 @@ enum TransactionCategory {
   DIVIDEND
   GIFT_RECEIVED
   INTEREST
-
 
   SUBSCRIPTION
   GROCERIES
@@ -265,4 +266,54 @@ model FinancialReportTip {
   updatedAt   DateTime @updatedAt
 
   @@index([reportId])
+}
+
+
+enum OptimizationPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model SpendingOptimizationReport {
+  id              String   @id @default(cuid())
+  month           Int
+  year            Int
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  totalCurrentSpending Float
+  totalRecommendedSpending Float
+  totalPotentialSavings Float
+  
+  recommendations CategoryRecommendation[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([userId, month, year]) 
+  @@index([userId])
+}
+
+model CategoryRecommendation {
+  id               String   @id @default(cuid())
+  category         TransactionCategory
+  currentSpending  Float
+  recommendedSpending Float
+  potentialSavings Float
+  spendingPercentage Float  
+  
+  title            String
+  description      String
+  subdescription   String?
+  priority         OptimizationPriority
+  
+  reportId         String
+  report           SpendingOptimizationReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  @@index([reportId])
+  @@index([category])
 }

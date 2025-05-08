@@ -111,6 +111,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  .container{
+    @apply space-y-8 p-6 mt-12 
+  }
 }
 
 .spinner {

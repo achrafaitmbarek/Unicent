@@ -20,8 +20,9 @@ export async function categorizeTransaction(description: string, amount: number,
       messages: [{
         role: "user",
         content: `Categorize this transaction: "${description}" for ${amount}, type: ${type}. 
-        Categories: Subscription, Investing, Groceries, Shopping, Dining, Transportation, Utilities, 
-        Entertainment, Housing, Healthcare, Education, Travel, Other.`
+        Categories: SALARY, INVESTING, BUSINESS_INCOME, RENTAL_INCOME, FREELANCE, REFUND, PENSION, DIVIDEND, 
+        GIFT_RECEIVED, INTEREST, SUBSCRIPTION, GROCERIES, SHOPPING, DINING, TRANSPORTATION, UTILITIES, 
+        ENTERTAINMENT, HOUSING, HEALTHCARE, EDUCATION, TRAVEL, TRANSFER, OTHER.`
       }]
     });
     

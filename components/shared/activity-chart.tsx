@@ -1,43 +1,28 @@
 "use client"
 
 import { useEffect, useRef } from "react"
+import { Button } from "@/components/ui/button"
+import { ChevronDown } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { categoryColors } from "./category‐colors";
 
 interface CategoryData {
-    categories: {
-        name: string;
-        value: number;
-        amount: number;
-    }[];
-    total: number;
-    currencySymbol: string;
+    categories: { name: string; value: number; amount: number }[]
+    total: number
+    currencySymbol: string
 }
 
 export function ActivityChart({ data }: { data: CategoryData }) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
 
-    // Color map for categories
-    const categoryColors: Record<string, string> = {
-        SUBSCRIPTION: "#01162c",
-        INVESTING: "#27c661",
-        GROCERIES: "#ff784b",
-        SHOPPING: "#facc16",
-        DINING: "#9333ea",
-        TRANSPORTATION: "#0ea5e9",
-        UTILITIES: "#f59e0b",
-        ENTERTAINMENT: "#ec4899",
-        HOUSING: "#64748b",
-        HEALTHCARE: "#10b981",
-        EDUCATION: "#8b5cf6",
-        TRAVEL: "#f97316",
-        OTHER: "#6b7280"
-    };
-
     useEffect(() => {
         const canvas = canvasRef.current
         if (!canvas) return
-
         const ctx = canvas.getContext("2d")
         if (!ctx) return
+
+        // Clear previous renders
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
 
         const dpr = window.devicePixelRatio || 1
         const rect = canvas.getBoundingClientRect()
@@ -47,22 +32,18 @@ export function ActivityChart({ data }: { data: CategoryData }) {
         canvas.style.width = `${rect.width}px`
         canvas.style.height = `${rect.height}px`
 
-        // Use real data or fallback to empty array
-        const chartData = data.categories.length > 0
-            ? data.categories.slice(0, 5) // Limit to top 5 categories
-            : [
-                { name: "OTHER", value: 100, amount: 0 }
-            ];
+        const chartData = data.categories.length
+            ? data.categories.slice(0, 5)
+            : [{ name: "OTHER", value: 100, amount: 0 }]
 
         const centerX = rect.width / 2
         const centerY = rect.height / 2
         const radius = Math.min(centerX, centerY) - 10
-
         let startAngle = -0.5 * Math.PI
 
-        chartData.forEach((item) => {
+        chartData.forEach(item => {
             const sliceAngle = (2 * Math.PI * item.value) / 100
-            const color = categoryColors[item.name] || "#6b7280" // Default gray
+            const color = categoryColors[item.name] ?? "#6b7280"
 
             ctx.beginPath()
             ctx.moveTo(centerX, centerY)
@@ -76,7 +57,7 @@ export function ActivityChart({ data }: { data: CategoryData }) {
 
         ctx.beginPath()
         ctx.arc(centerX, centerY, radius * 0.6, 0, 2 * Math.PI)
-        ctx.fillStyle = "white"
+        ctx.fillStyle = "#fff"
         ctx.fill()
 
         ctx.fillStyle = "#01162c"
@@ -86,29 +67,44 @@ export function ActivityChart({ data }: { data: CategoryData }) {
         ctx.fillText("Total", centerX, centerY - 10)
         ctx.font = "bold 16px Arial"
         ctx.fillText(`${data.currencySymbol}${data.total.toLocaleString()}`, centerX, centerY + 10)
-
     }, [data])
 
-    // Display up to 4 categories for the legend
-    const displayCategories = data.categories.slice(0, 4);
+    const displayCategories = data.categories.slice(0, 4)
 
     return (
-        <div className="flex items-center justify-between">
-            <canvas ref={canvasRef} width={200} height={200} />
-            <div className="ml-4 space-y-3">
-                {displayCategories.map(item => (
-                    <div key={item.name} className="flex items-center gap-2">
-                        <div
-                            className="h-3 w-3 rounded-full"
-                            style={{ backgroundColor: categoryColors[item.name] || "#6b7280" }}
-                        ></div>
-                        <span className="text-sm text-[#8f939f]">
-                            {item.name.charAt(0) + item.name.slice(1).toLowerCase()}
-                        </span>
-                        <span className="ml-auto font-medium">{item.value}%</span>
+        <Card className="h-full">
+            <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-lg font-semibold text-[#03091d]">Activity</h2>
+                    <Button
+                        variant="outline"
+                        className="bg-[#fafcfa] text-[#747682] h-8 border-[#edf2f6] hover:bg-[#f2f4fa] hover:text-[#03091d]"
+                        size="sm"
+                    >
+                        Monthly <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                </div>
+
+                <div className="flex-1 flex items-center justify-between">
+                    <div className="w-1/2 h-full flex items-center justify-center">
+                        <canvas ref={canvasRef} width={200} height={200} className="max-w-full max-h-full" />
                     </div>
-                ))}
-            </div>
-        </div>
+                    <div className="w-1/2 space-y-3">
+                        {displayCategories.map(item => (
+                            <div key={item.name} className="flex items-center gap-2">
+                                <div
+                                    className="h-3 w-3 rounded-full"
+                                    style={{ backgroundColor: categoryColors[item.name] ?? "#6b7280" }}
+                                />
+                                <span className="text-sm text-[#8f939f]">
+                                    {item.name.charAt(0) + item.name.slice(1).toLowerCase()}
+                                </span>
+                                <span className="ml-auto font-medium">{item.value}%</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
     )
 }

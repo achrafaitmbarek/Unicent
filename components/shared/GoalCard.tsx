@@ -46,7 +46,7 @@ export function GoalCard({
     return (
         <div
             className={`
-        rounded-lg p-5 h-auto flex flex-col relative
+        rounded-xl p-5 h-auto flex flex-col relative
         ${hasBackground
                     ? "bg-primary text-white border-none"
                     : "border border-blue-100 text-gray-800"
@@ -76,9 +76,9 @@ export function GoalCard({
             <div className="mb-3">
                 <div
                     className={`
-            h-10 w-10 rounded-full flex items-center justify-center
+            h-10 w-10 rounded-md flex items-center justify-center
             ${hasBackground
-                            ? "bg-white/20"
+                            ? "bg-primary"
                             : "bg-[#F0EFFD]"
                         }
           `}
@@ -123,26 +123,37 @@ export function GoalCard({
                             r="16"
                             fill="none"
                             stroke={hasBackground ? "#ffffff33" : "#e6e6e6"}
-                            strokeWidth="3"
+                            strokeWidth="2"
                         />
+
                         <circle
                             cx="18"
                             cy="18"
                             r="16"
                             fill="none"
                             stroke={hasBackground ? "#ffffff" : "#4338CA"}
-                            strokeWidth="3"
+                            strokeWidth="2"
                             strokeDasharray="100"
                             strokeDashoffset={dashOffset}
+                            strokeLinecap="round"
                             transform="rotate(-90 18 18)"
                         />
+
+                        {progress > 0 && (
+                            <circle
+                                cx={18 + 16 * Math.cos((progress * 3.6 - 90) * Math.PI / 180)}
+                                cy={18 + 16 * Math.sin((progress * 3.6 - 90) * Math.PI / 180)}
+                                r="2"
+                                fill={hasBackground ? "#ffffff" : "#4338CA"}
+                            />
+                        )}
                     </svg>
                     <div className="absolute top-0 left-0 h-full w-full flex items-center justify-center">
                         <span
                             className={`
-                text-xs font-bold
-                ${hasBackground ? "text-white" : "text-[#4338CA]"}
-              `}
+                             text-xs font-bold
+                             ${hasBackground ? "text-white" : "text-[#4338CA]"}
+                             `}
                         >
                             {progress}%
                         </span>
