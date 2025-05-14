@@ -1,24 +1,39 @@
 import { auth } from "@/auth";
-
+import { NextResponse } from "next/server";
 import { publicRoutes, authRoutes, protectedRoutes, DEFAULT_LOGIN_REDIRECT } from "@/routes";
 
-export default auth((req) => {
+export default auth(async (req) => {
   const url = new URL(req.nextUrl);
+  const path = url.pathname;
+
+  // Check if the path is in public routes - allow access
+  if (publicRoutes.includes(path)) {
+    return NextResponse.next();
+  }
+
+  // Helper function to check if a path matches a protected route pattern
+  const isProtectedPath = (path: string): boolean => {
+    return protectedRoutes.some(route => {
+      if (route.endsWith('/*')) {
+        const baseRoute = route.slice(0, -2);
+        return path === baseRoute || path.startsWith(`${baseRoute}/`);
+      }
+      return path === route;
+    });
+  };
 
   if (req.auth) {
-    if ([...publicRoutes, ...authRoutes].includes(url.pathname)) {
-      const redirectUrl = new URL(DEFAULT_LOGIN_REDIRECT, req.nextUrl.origin);
-      return Response.redirect(redirectUrl);
+    // User is logged in
+    if (authRoutes.includes(path)) {
+      return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, req.nextUrl.origin));
     }
+    return NextResponse.next();
   } else {
-    if (protectedRoutes.includes(url.pathname)) {
-      const loginUrl = new URL("/auth/login", req.nextUrl.origin);
-      return Response.redirect(loginUrl);
+    // User is not logged in
+    if (isProtectedPath(path)) {
+      return NextResponse.redirect(new URL("/auth/login", req.nextUrl.origin));
     }
-    if (![...publicRoutes, ...authRoutes].includes(url.pathname)) {
-      const rootUrl = new URL("/auth/login", req.nextUrl.origin);
-      return Response.redirect(rootUrl);
-    }
+    return NextResponse.next();
   }
 });
 

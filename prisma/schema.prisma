@@ -7,6 +7,19 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
+enum ReportType {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum InsightType {
+  SAVINGS
+  SPENDING
+  INVESTMENT
+  CASH_FLOW
+}
  
 model User {
   id            String          @id @default(cuid())
@@ -20,6 +33,10 @@ model User {
   financialTips FinancialTip[]
   isPremium     Boolean         @default(false)
   
+  reportTypes      ReportType[]   @default([MONTHLY])
+  
+  preferredInsightTypes InsightType[]  @default([SAVINGS])
+
   financialReports FinancialReport[] 
   spendingReports SpendingOptimizationReport[]
   
@@ -238,6 +255,7 @@ model VerificationToken {
 
   predictedIncome    Float
   predictedExpenses  Float
+  predicetedCashFlow   Float
   
   savingsTips        FinancialReportTip[]
   

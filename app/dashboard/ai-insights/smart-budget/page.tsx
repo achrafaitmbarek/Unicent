@@ -1,4 +1,4 @@
-import { ChevronDown, MoreHorizontal, Check, LockKeyhole, ArrowUpRight } from "lucide-react"
+import { ChevronDown, MoreHorizontal, LockKeyhole, ArrowUpRight } from "lucide-react"
 import {
     Table,
     TableBody,
@@ -178,16 +178,25 @@ export default async function SmartBudgetsPage({
                     <div className="overflow-x-auto">
                         <Table>
                             <TableHeader>
-                                <TableRow className="border-b border-[#e6ecf2] hover:bg-transparent">
-                                    <TableHead className="w-8 py-3">
-                                        <div className="flex h-5 w-5 items-center justify-center rounded border border-[#e6ecf2]"></div>
+                                <TableRow className="bg-[#F6FAFD]">
+                                    <TableHead className="py-3 px-12 text-left text-sm font-medium text-[#01162c] rounded-tl-xl">
+                                        Name
                                     </TableHead>
-                                    <TableHead className="py-3 text-left text-sm font-medium text-[#01162c]">Name</TableHead>
-                                    <TableHead className="py-3 text-left text-sm font-medium text-[#01162c]">Current</TableHead>
-                                    <TableHead className="py-3 text-left text-sm font-medium text-[#01162c]">Recommended</TableHead>
-                                    <TableHead className="py-3 text-left text-sm font-medium text-[#01162c]">Difference</TableHead>
-                                    <TableHead className="py-3 text-left text-sm font-medium text-[#01162c]">Date</TableHead>
-                                    <TableHead className="py-3 text-left text-sm font-medium text-[#01162c]">Status</TableHead>
+                                    <TableHead className="py-3 px-12 text-left text-sm font-medium text-[#01162c]">
+                                        Current
+                                    </TableHead>
+                                    <TableHead className="py-3 px-12 text-left text-sm font-medium text-[#01162c]">
+                                        Recommended
+                                    </TableHead>
+                                    <TableHead className="py-3 px-12 text-left text-sm font-medium text-[#01162c]">
+                                        Difference
+                                    </TableHead>
+                                    <TableHead className="py-3 px-12 text-left text-sm font-medium text-[#01162c]">
+                                        Date
+                                    </TableHead>
+                                    <TableHead className="py-3 px-12 text-left text-sm font-medium text-[#01162c] rounded-tr-xl">
+                                        Status
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -201,13 +210,11 @@ export default async function SmartBudgetsPage({
                                     let bgColor = "bg-[#f4fcf7]";
                                     let textColor = "text-[#00b158]";
                                     let priorityLabel = "Low Priority";
-                                    let showCheckmark = false;
 
                                     if (rec.priority === "HIGH") {
                                         bgColor = "bg-[#fff1ed]";
                                         textColor = "text-[#fc4b53]";
                                         priorityLabel = "High Priority";
-                                        showCheckmark = true;
                                     } else if (rec.priority === "MEDIUM") {
                                         bgColor = "bg-[#fff3fd]";
                                         textColor = "text-[#b2910f]";
@@ -225,17 +232,12 @@ export default async function SmartBudgetsPage({
                                         >
                                             {!isPremiumRow && (
                                                 <>
-                                                    <TableCell className="py-3">
-                                                        <div className={`flex h-5 w-5 items-center justify-center rounded border border-[#e6ecf2] ${showCheckmark ? 'bg-[#23c55e] text-white' : ''}`}>
-                                                            {showCheckmark && <Check className="h-3 w-3" />}
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="py-3 text-sm font-medium text-[#01162c]">{categoryName}</TableCell>
-                                                    <TableCell className="py-3 text-sm text-[#01162c]">{rec.currentSpendingFormatted}</TableCell>
-                                                    <TableCell className="py-3 text-sm text-[#01162c]">{rec.recommendedSpendingFormatted}</TableCell>
-                                                    <TableCell className="py-3 text-sm text-[#01162c]">{percentDiff}%</TableCell>
-                                                    <TableCell className="py-3 text-sm text-[#01162c]">{date}</TableCell>
-                                                    <TableCell className="py-3">
+                                                    <TableCell className="py-3 px-12 text-sm font-medium text-[#01162c]">{categoryName}</TableCell>
+                                                    <TableCell className="py-3 px-12 text-sm text-[#01162c]">{rec.currentSpendingFormatted}</TableCell>
+                                                    <TableCell className="py-3 px-12 text-sm text-[#01162c]">{rec.recommendedSpendingFormatted}</TableCell>
+                                                    <TableCell className="py-3 px-12 text-sm text-[#01162c]">{percentDiff}%</TableCell>
+                                                    <TableCell className="py-3 px-12 text-sm text-[#01162c]">{date}</TableCell>
+                                                    <TableCell className="py-3 px-12">
                                                         <span className={`rounded-full ${bgColor} px-3 py-1 text-xs font-medium ${textColor}`}>
                                                             {priorityLabel}
                                                         </span>
