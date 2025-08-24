@@ -147,6 +147,7 @@ const Analytics = async () => {
                     borderColor="border-[#1c60e8]"
                     bgColor="bg-[#f3f7ff]"
                     strokeColor="#1c60e8"
+                    isBlurred={true}
                 />
                 <FinancialCard
                     icon="expense"
@@ -157,6 +158,7 @@ const Analytics = async () => {
                     borderColor="border-[#fa16d6]"
                     bgColor="bg-[#fff3fd]"
                     strokeColor="#fa16d6"
+                    isBlurred={true}
                 />
                 <FinancialCard
                     icon="income"
@@ -167,6 +169,7 @@ const Analytics = async () => {
                     borderColor="border-[#23c55e]"
                     bgColor="bg-[#f4fcf7]"
                     strokeColor="#23c55e"
+                    isBlurred={true}
                 />
                 <FinancialCard
                     icon="balance"
@@ -177,6 +180,7 @@ const Analytics = async () => {
                     borderColor="border-[#1c60e8]"
                     bgColor="bg-[#f3f7ff]"
                     strokeColor="#1c60e8"
+                    isBlurred={true}
                 />
             </div>
 

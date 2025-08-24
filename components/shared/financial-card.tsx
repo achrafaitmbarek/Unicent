@@ -9,6 +9,7 @@ interface FinancialCardProps {
     borderColor: string;
     bgColor: string;
     strokeColor: string;
+    isBlurred?: boolean;
 }
 
 export function FinancialCard({
@@ -19,18 +20,22 @@ export function FinancialCard({
     borderColor,
     bgColor,
     strokeColor,
+    isBlurred = false,
 }: FinancialCardProps) {
     const borderColorValue = borderColor.replace('border-[', '').replace(']', '');
 
     return (
-        <div className={`rounded-lg ${bgColor} p-4 relative overflow-hidden`}>
+        <div className={`rounded-lg ${bgColor} p-4 relative overflow-hidden group cursor-pointer`}>
             <div
                 className="absolute top-0 left-0 w-1 h-1/2"
                 style={{ backgroundColor: borderColorValue }}
             ></div>
 
             <h3 className="mb-2 text-sm font-medium text-[#01162c]">{title}</h3>
-            <p className="mb-1 text-xl font-bold text-[#01162c]">{amount}</p>
+            <p className={`mb-1 text-xl font-bold text-[#01162c] transition-all duration-300 ${isBlurred ? 'filter blur-sm group-hover:blur-none' : ''
+                }`}>
+                {amount}
+            </p>
             <div
                 className={`flex items-center text-xs font-medium ${isPositive ? "text-[#00b158]" : "text-[#f55f5f]"
                     }`}
