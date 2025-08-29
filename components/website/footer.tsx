@@ -167,16 +167,16 @@ export function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-muted-foreground text-sm mb-4 md:mb-0">© {currentYear} Unicent. All rights reserved.</p>
             <div className="flex flex-wrap gap-6">
-              <Link href="#" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
+              <Link href="/privacy-policy" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
                 Privacy Policy
               </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
+              <Link href="/terms-of-service" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
                 Terms of Service
               </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
+              <Link href="/cookie-policy" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
                 Cookie Policy
               </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
+              <Link href="/contact-us" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
                 Contact Us
               </Link>
             </div>
