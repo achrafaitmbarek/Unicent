@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 // import localFont from "next/font/local";
 import "./globals.css";
 import { Nunito_Sans } from 'next/font/google';
+import { ThemeProvider } from "@/components/website/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
 
 // Configure Nunito Sans with the weights you want to use
 const nunitoSans = Nunito_Sans({
@@ -28,7 +30,15 @@ export default function RootLayout({
       <body
         className={`${nunitoSans.variable} font-sans antialiased`}
       >
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster richColors position="top-right" />
+        </ThemeProvider>
       </body>
     </html>
   );

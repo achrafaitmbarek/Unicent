@@ -201,9 +201,9 @@ const FinancialWatch = () => {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectGroup>
-                                    <SelectItem value="october">October 2024</SelectItem>
-                                    <SelectItem value="september">September 2024</SelectItem>
-                                    <SelectItem value="august">August 2024</SelectItem>
+                                    <SelectItem value="october">July 2025</SelectItem>
+                                    <SelectItem value="september">June 2025</SelectItem>
+                                    <SelectItem value="august">May 2025</SelectItem>
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
