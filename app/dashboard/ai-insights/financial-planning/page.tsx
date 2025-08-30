@@ -441,9 +441,9 @@ export default function FinancialPlanning() {
                                             <div>
                                                 <h3 className="font-bold text-lg text-gray-900">{tip.title}</h3>
                                                 <p className="text-gray-500 text-sm">
-                                                    {/* {tip.description.length > 120
+                                                    {tip.description.length > 120
                                                         ? `${tip.description.substring(0, 120)}...`
-                                                        : tip.description} */}
+                                                        : tip.description}
                                                     {tip.description}
                                                 </p>
                                             </div>
@@ -454,7 +454,7 @@ export default function FinancialPlanning() {
                                     </div>
                                 );
                             })}
-                            {!isPremium && financialTips.length > 2 && (
+                            {isPremium && financialTips.length > 2 && (
                                 <>
                                     {financialTips.slice(2, 4).map((tip, index) => {
                                         let tipImage = BrainAtom;

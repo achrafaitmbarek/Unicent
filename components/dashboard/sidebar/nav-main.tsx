@@ -75,11 +75,10 @@ export function NavMain({
                         return (
                             <SidebarMenuItem key={item.title}>
                                 <SidebarMenuButton
-                                    size={'lg'}
+                                    size={"lg"}
                                     asChild
                                     tooltip={item.title}
-                                    className={`px-3 py-2 rounded-md active:bg-none text-base font-normal transition-colors
-                                    ${activeItem === item.title ? 'bg-[#01162c] text-white' : 'hover:bg-[#f8f8fb]'}`}
+                                    className={`rounded-md active:bg-none text-base font-normal transition-colors ${activeItem === item.title ? 'bg-[#01162c] text-white' : 'hover:bg-[#f8f8fb]'}`}
                                     onClick={() => handleItemClick(item.title)}
                                 >
                                     <Link href={item.url} className="flex items-center gap-3">
@@ -107,9 +106,9 @@ export function NavMain({
                             <SidebarMenuItem>
                                 <CollapsibleTrigger asChild>
                                     <SidebarMenuButton
+                                        size={"lg"}
                                         tooltip={item.title}
-                                        className={`px-3 py-6 rounded-md active:bg-none text-base font-normal transition-colors
-                                        ${activeItem === item.title ? 'bg-[#01162c] text-white' : 'hover:bg-[#f8f8fb]'}`}
+                                        className={`rounded-md active:bg-none text-base font-normal transition-colors ${activeItem === item.title ? 'bg-[#01162c] text-white' : 'hover:bg-[#f8f8fb]'}`}
                                         onClick={() => handleItemClick(item.title)}
                                     >
                                         <div className="flex items-center gap-4 justify-between w-full">

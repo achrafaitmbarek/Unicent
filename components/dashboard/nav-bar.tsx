@@ -19,11 +19,11 @@ export const NavBar = async ({ }: Props) => {
     return (
         <div className="bg-white w-full px-8 py-3 flex flex-row justify-between items-center border-b">
             <div>
-                <Input
+                {/* <Input
                     type="search"
                     placeholder="Search here"
                     className="h-10 min-w-60"
-                />
+                /> */}
             </div>
             <div className="flex items-center space-x-8">
                 <Button variant={'default'} className="py-5 px-6 text-sm rounded-lg" onClick={async () => {

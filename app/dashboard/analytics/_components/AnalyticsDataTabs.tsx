@@ -158,7 +158,7 @@ export default function AnalyticsDataTabs() {
                 >
                     {activeTab === "income" ? (
                         <>
-                            <SyncButton />
+                            {/* <SyncButton /> */}
                             <TransactionAnalyticsView
                                 type="income"
                                 transactions={incomeData}

@@ -433,6 +433,69 @@ export async function getUnusualTransactions(month?: number, year?: number) {
     year
   };
 }
+
+// List all stored financial reports for the authenticated user
+export async function listUserFinancialReports(): Promise<FinancialReportData[]> {
+  const session = await auth();
+  if (!session?.user?.email) {
+    throw new Error("Not authenticated");
+  }
+
+  const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
+  if (!user) throw new Error("User not found");
+
+  const reports = await prisma.financialReport.findMany({
+    where: { userId: user.id },
+    orderBy: [{ year: "desc" }, { month: "desc" }],
+    include: { savingsTips: true },
+  });
+
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const shaped: FinancialReportData[] = [];
+  for (const r of reports) {
+    // Attempt to use stored spendingBreakdown; if missing or invalid, compute fallback
+    let spending: SpendingCategory[] | null = null;
+    if (r.spendingBreakdown && typeof r.spendingBreakdown === 'object') {
+      try {
+        const val = r.spendingBreakdown as unknown as SpendingCategory[];
+        if (Array.isArray(val)) spending = val as SpendingCategory[];
+      } catch {
+        // ignore and fallback
+      }
+    }
+    if (!spending) {
+      try {
+        spending = await getSpendingByCategory(r.month, r.year);
+      } catch {
+        spending = [];
+      }
+    }
+
+    shaped.push({
+      id: r.id,
+      title: r.title,
+      month: r.month,
+      year: r.year,
+      monthName: monthNames[r.month - 1] || `${r.month}`,
+      totalIncome: r.totalIncome,
+      totalExpenses: r.totalExpenses,
+      savingsRate: r.savingsRate,
+  spendingBreakdown: spending as SpendingCategory[],
+      predictedIncome: r.predictedIncome,
+      predictedExpenses: r.predictedExpenses,
+      predicetedCashFlow: r.predicetedCashFlow,
+      savingsTips: r.savingsTips,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    })
+  }
+
+  return shaped;
+}
 // Add after the getUnusualTransactions function
 
 /**
