@@ -11,10 +11,19 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Login from "@/assets/demos-dashboard/Login.png"
 import Register from "@/assets/demos-dashboard/regiter.png"
-import dashboard1 from "@/assets/demos-dashboard/dashboard1.png"
-import dashboard2 from "@/assets/demos-dashboard/dashboard2.png"
-import dashboard3 from "@/assets/demos-dashboard/dashboard3.png"
-import dashboard4 from "@/assets/demos-dashboard/dashboard4.png"
+import AiInsight from "@/assets/demos-dashboard/ait-insight1.png"
+
+import AiInsightBudget from "@/assets/demos-dashboard/ait-insight-budget.png"
+import Dashboard from "@/assets/demos-dashboard/Dashboard.png"
+
+import Expenses from "@/assets/demos-dashboard/Expenses.png"
+import Incomes from "@/assets/demos-dashboard/Incomes.png"
+import Profile from "@/assets/demos-dashboard/profile.png"
+import reportsOveview from "@/assets/demos-dashboard/reports-overview.png"
+
+import unicentMagic1 from "@/assets/demos-dashboard/unicent-magic1.png"
+import unicentMagic2 from "@/assets/demos-dashboard/unicent-magic2.png"
+
 
 export function DashboardPreview() {
     const containerRef = useRef<HTMLDivElement>(null)
@@ -24,14 +33,19 @@ export function DashboardPreview() {
     const [touchStartX, setTouchStartX] = useState<number | null>(null)
     const [tilt, setTilt] = useState({ x: 0, y: 0 })
 
-    const slides: { src: StaticImageData; label: string }[] = [
-        { src: Login, label: "Login" },
-        { src: Register, label: "Register" },
-        { src: dashboard1, label: "Overview" },
-        { src: dashboard2, label: "Spending" },
-        { src: dashboard3, label: "Goals" },
-        { src: dashboard4, label: "Insights" },
-    ]
+    const slides: { src: StaticImageData; label: string; type?: 'magic' | 'ai' | 'core' }[] = [
+        { src: Login, label: "Login", type: 'core' },
+        { src: Register, label: "Register", type: 'core' },
+        { src: Dashboard, label: "Dashboard Overview", type: 'core' },
+        { src: Expenses, label: "Expenses Tracking", type: 'core' },
+        { src: Incomes, label: "Income Overview", type: 'core' },
+        { src: Profile, label: "Profile & Stats", type: 'core' },
+        { src: reportsOveview, label: "Reports Overview", type: 'core' },
+        { src: AiInsight, label: "AI Insights", type: 'ai' },
+        { src: AiInsightBudget, label: "AI Smart Budget", type: 'ai' },
+        { src: unicentMagic1, label: "Unicent Magic 1", type: 'magic' },
+        { src: unicentMagic2, label: "Unicent Magic 2", type: 'magic' },
+    ];
 
     useEffect(() => {
         const node = containerRef.current
@@ -138,12 +152,22 @@ export function DashboardPreview() {
                                     src={slides[current].src}
                                     alt={`${slides[current].label} preview`}
                                     fill
-                                    className="object-contain p-2 md:p-4"
+                                    className={
+                                        "object-contain p-2 md:p-4 transition-all duration-500 " +
+                                        (slides[current].type === 'magic' ? ' drop-shadow-[0_0_16px_rgba(186,85,255,0.25)] scale-105' : '') +
+                                        (slides[current].type === 'ai' ? ' drop-shadow-[0_0_12px_rgba(30,144,255,0.18)]' : '')
+                                    }
                                     priority={current === 0}
                                 />
 
-                                {/* Top-right label */}
-                                <div className="absolute top-3 right-3">
+                                {/* Top-right label with effect */}
+                                <div className="absolute top-3 right-3 flex items-center gap-2">
+                                    {slides[current].type === 'magic' && (
+                                        <span className="animate-pulse rounded-full bg-gradient-to-r from-fuchsia-500 to-violet-500 px-3 py-1 text-xs font-bold text-white shadow-lg border border-white/30">Magic</span>
+                                    )}
+                                    {slides[current].type === 'ai' && (
+                                        <span className="rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 px-3 py-1 text-xs font-bold text-white shadow">AI</span>
+                                    )}
                                     <Badge variant="outline" className="bg-background/80 backdrop-blur-sm">
                                         {slides[current].label}
                                     </Badge>
@@ -202,8 +226,13 @@ export function DashboardPreview() {
                 </div>
             </motion.div>
 
-            {/* Glow effect */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl blur-3xl opacity-10 dark:opacity-20 -z-10"></div>
+            {/* Glow effect, more intense for Magic slides */}
+            <div className={
+                "absolute -inset-4 rounded-xl blur-3xl -z-10 " +
+                (slides[current].type === 'magic'
+                    ? 'bg-gradient-to-r from-fuchsia-500 via-violet-500 to-indigo-500 opacity-30 dark:opacity-40 animate-pulse'
+                    : 'bg-gradient-to-r from-blue-500 to-indigo-500 opacity-10 dark:opacity-20')
+            }></div>
         </div>
     )
 }

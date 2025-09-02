@@ -34,6 +34,10 @@ const data = {
             isActive: true,
             items: [
                 {
+                    title: "Magic",
+                    url: "/dashboard/magic",
+                },
+                {
                     title: "Financial Watch",
                     url: "/dashboard/ai-insights/financial-watch",
                 },
@@ -62,10 +66,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
         <Sidebar collapsible={'icon'} {...props}>
             <SidebarContent className="bg-white space-y-4 border-r">
-                <div className="px-4 pt-4">
+                <div className={`pt-4 ${state === 'collapsed' ? 'px-0' : 'px-4'}`}>
                     {state === "collapsed" ? (
-                        <div className="flex justify-center">
-                            <Image src={LogoImage} alt="logo" width={28} height={28} className="rounded-sm" />
+                        <div className="w-12 h-12 rounded-lg bg-white shadow-sm ring-1 ring-gray-200 flex items-center justify-center mx-auto">
+                            <Image src={LogoImage} alt="logo" width={28} height={28} className="block shrink-0 object-contain" />
                         </div>
                     ) : (
                         <div className="pl-4">
@@ -85,7 +89,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </div>
                 )}
             </SidebarContent>
-            <SidebarRail className="border-r" />
+            <SidebarRail className="" />
         </Sidebar>
     )
 }

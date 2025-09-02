@@ -1,4 +1,6 @@
+"use client"
 import Link from "next/link"
+import { useEffect, useRef, useState } from "react"
 import { ArrowRight, Lock, Shield, Sparkles, Wallet, Zap, Globe, BarChart3, Target } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -15,8 +17,46 @@ import { Web3Stats } from "@/components/website/web3-stats"
 import { Navbar } from "@/components/website/Navbar"
 
 export default function LandingPage() {
+
+  const dashboardRef = useRef<HTMLDivElement>(null)
+  const [glowPos, setGlowPos] = useState<{ x: number; y: number } | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Mouse move handler for glow (entire page)
+  useEffect(() => {
+    const handle = (e: MouseEvent) => {
+      if (window.innerWidth < 768) return
+      setGlowPos({ x: e.clientX, y: e.clientY })
+    }
+    window.addEventListener('mousemove', handle)
+    return () => window.removeEventListener('mousemove', handle)
+  }, [])
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-background/80 dark:from-background dark:to-background/90">
+    <div className="min-h-screen bg-gradient-to-b from-background to-background/80 dark:from-background dark:to-background/90 relative overflow-x-clip">
+      {/* Intense, always-on glow following cursor (client only) */}
+      {mounted && (
+        <div
+          className="pointer-events-none fixed z-0 transition-all duration-500"
+          style={{
+            width: 800,
+            height: 500,
+            left: glowPos ? `${glowPos.x - 400}px` : '50%',
+            top: glowPos ? `${glowPos.y - 250}px` : '50%',
+            transform: glowPos ? 'none' : 'translate(-50%, -50%)',
+            background:
+              "radial-gradient(ellipse 60% 40% at 50% 50%, rgba(186,85,255,0.19) 0%, rgba(124,58,237,0.14) 60%, rgba(59,130,246,0.11) 100%)",
+            filter: "blur(130px)",
+            opacity: 1,
+            transition: 'opacity 0.5s, left 0.3s, top 0.3s',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full bg-[url('/images/grid-pattern.svg')] bg-repeat opacity-[0.02] dark:opacity-[0.03]"></div>
         <div className="absolute top-0 left-0 w-full h-full">
@@ -58,12 +98,16 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="dashboard" aria-labelledby="dashboard-heading" className="py-24 bg-muted/30 border-y border-border/40 relative overflow-hidden scroll-mt-24">
+        <section
+          id="dashboard"
+          aria-labelledby="dashboard-heading"
+          className="py-24 bg-muted/30 border-y border-border/40 relative overflow-hidden scroll-mt-24"
+        >
           <div className="absolute inset-0 -z-10">
             <div className="absolute inset-0 bg-[url('/images/circuit-pattern.svg')] bg-repeat opacity-[0.03] dark:opacity-[0.05]"></div>
           </div>
 
-          <div className="container max-w-7xl">
+          <div className="container max-w-7xl" ref={dashboardRef}>
             <div className="flex flex-col items-center text-center mb-16 space-y-4">
               <div className="flex items-center gap-2">
                 <Badge

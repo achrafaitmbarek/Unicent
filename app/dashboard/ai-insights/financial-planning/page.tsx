@@ -65,6 +65,8 @@ import TargetGoal from "@/assets/tips-Cards/TargetGoal.png";
 import Image from "next/image";
 import Link from "next/link";
 import { FinancialTip, getUserFinancialTips } from "@/services/actions/financial-tips";
+import { getAIPlansForGoals } from "@/services/actions/goal-planner";
+import type { GoalPlan } from "@/services/actions/goal-planner";
 
 export default function FinancialPlanning() {
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -76,6 +78,8 @@ export default function FinancialPlanning() {
     const [financialTips, setFinancialTips] = useState<FinancialTip[]>([]);
     const [tipsLoading, setTipsLoading] = useState(true);
     const [isPremium, setIsPremium] = useState(false);
+    const [plans, setPlans] = useState<{ plans: GoalPlan[]; freeCash: number } | null>(null);
+    const [loadingPlans, setLoadingPlans] = useState(false);
     const confirmDeleteGoal = (goalId: string) => {
         setGoalToDelete(goalId);
         setDeleteDialogOpen(true);
@@ -130,6 +134,21 @@ export default function FinancialPlanning() {
         }
 
         fetchTips();
+    }, []);
+
+    useEffect(() => {
+        async function loadPlans() {
+            setLoadingPlans(true);
+            try {
+                const res = await getAIPlansForGoals();
+                setPlans(res);
+            } catch {
+                // ignore
+            } finally {
+                setLoadingPlans(false);
+            }
+        }
+        loadPlans();
     }, []);
 
     const getRandomProgress = (goalId: string) => {
@@ -231,7 +250,13 @@ export default function FinancialPlanning() {
                                 Fill in the details to create your goal
                             </DialogDescription>
                         </DialogHeader>
-                        <FinancialGoalForm onCancel={() => setDialogOpen(false)} />
+                        <FinancialGoalForm
+                            onCancel={() => setDialogOpen(false)}
+                            onSuccess={() => {
+                                setDialogOpen(false);
+                                fetchGoals();
+                            }}
+                        />
                     </DialogContent>
                 </Dialog>
                 <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -293,6 +318,43 @@ export default function FinancialPlanning() {
                             </div>
                         )}
                     </div>
+                )}
+            </div>
+
+            {/* AI Goal Coach */}
+            <div className="bg-white rounded-xl p-6 shadow-sm mt-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 className="text-xl font-bold text-primary">AI Goal Coach</h2>
+                        <p className="text-sm text-gray-500">Smart monthly allocations to hit your targets</p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={async () => {
+                        setLoadingPlans(true);
+                        const res = await getAIPlansForGoals();
+                        setPlans(res);
+                        setLoadingPlans(false);
+                    }}>Refresh</Button>
+                </div>
+
+                {loadingPlans ? (
+                    <div className="text-sm text-gray-500">Generating plans…</div>
+                ) : plans && plans.plans.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {plans.plans.map((p, i) => (
+                            <div key={i} className="rounded-lg border p-4">
+                                <div className="text-xs text-muted-foreground mb-1">{p.priority} priority</div>
+                                <div className="font-semibold mb-1">{p.goalName}</div>
+                                <div className="text-sm">Monthly: <span className="font-medium">${(p.suggestedMonthly || 0).toLocaleString()}</span></div>
+                                <div className="text-xs text-muted-foreground">Projected completion: {new Date(p.projectedCompletionDate).toLocaleDateString()}</div>
+                                {p.rationale && <div className="text-xs mt-2 text-[#475569]">{p.rationale}</div>}
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-sm text-gray-500">No goals to plan yet. Create a goal above.</div>
+                )}
+                {plans && (
+                    <div className="mt-4 text-xs text-muted-foreground">Total free cash considered: ${plans.freeCash.toLocaleString()}</div>
                 )}
             </div>
 

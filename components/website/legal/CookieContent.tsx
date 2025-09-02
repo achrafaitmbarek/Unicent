@@ -24,8 +24,21 @@ export default function CookieContent() {
                 {langFr ? "Dernière mise à jour" : "Last updated"}: 30 Aug 2025
             </p>
 
+            <div className="mb-8 p-4 rounded-xl bg-blue-50 border border-blue-200 dark:bg-blue-900/20 dark:border-blue-900/40">
+                <strong>{langFr ? "Conformité RGPD & DSP2" : "GDPR & PSD2 Compliance"}</strong><br />
+                {langFr
+                    ? "Unicent respecte le RGPD (droit d'accès, de rectification, d'effacement, portabilité, opposition, limitation, droit à l'oubli) et la directive DSP2 pour la sécurité et la confidentialité des données bancaires."
+                    : "Unicent complies with GDPR (right of access, rectification, erasure, portability, objection, restriction, right to be forgotten) and PSD2 for secure and confidential banking data handling."}
+            </div>
+
             {langFr ? (
-                <div className="prose prose-gray dark:prose-invert">
+                <div className="prose prose-gray dark:prose-invert space-y-6">
+                    <h2>Suppression automatique & inactivité</h2>
+                    <ul>
+                        <li>Votre compte peut être supprimé automatiquement après 90 jours d&apos;inactivité (aucune connexion ou action).</li>
+                        <li>Un email d’avertissement sera envoyé avant toute suppression définitive.</li>
+                        <li>Vous pouvez à tout moment demander la suppression immédiate de votre compte et de toutes vos données (“droit à l’oubli”).</li>
+                    </ul>
                     <p>
                         Cette politique explique comment Unicent utilise des cookies et des technologies similaires sur
                         nos sites et applications. Pour des informations générales sur notre traitement des données,

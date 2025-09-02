@@ -16,16 +16,17 @@ import { z } from "zod";
 import { createFinancialGoal } from "@/services/actions/financial-goal";
 import { toast } from "sonner";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+
 
 type FinancialGoalFormProps = {
     initialData?: z.infer<typeof FinancialGoalSchema>;
     onCancel?: () => void;
+    onSuccess?: () => void;
 };
 
-export function FinancialGoalForm({ initialData, onCancel }: FinancialGoalFormProps) {
+export function FinancialGoalForm({ initialData, onCancel, onSuccess }: FinancialGoalFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const router = useRouter();
+
 
     const form = useForm<z.infer<typeof FinancialGoalSchema>>({
         resolver: zodResolver(FinancialGoalSchema),
@@ -48,10 +49,8 @@ export function FinancialGoalForm({ initialData, onCancel }: FinancialGoalFormPr
                 toast.success("Success!", {
                     description: "Financial goal created successfully",
                 })
-                if (onCancel) {
-                    onCancel();
-                }
-                router.push("/dashboard/analytics/financial-planning");
+                if (onSuccess) onSuccess();
+                if (onCancel) onCancel();
             } else {
                 toast.error("Failed to create financial goal", {
                     description: response.error,

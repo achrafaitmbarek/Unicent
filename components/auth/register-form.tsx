@@ -10,6 +10,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { RegisterSchema } from "@/schemas";
 import { Input } from "@/components/ui/input";
 import { Button } from "../ui/button";
+import { AuthConsentModal } from "@/components/auth/AuthConsentModal";
+import { toast } from "sonner";
 import { register, handleGoogleSignIn } from "@/services/actions/register";
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
@@ -28,6 +30,8 @@ const RegisterFormContent = () => {
     const [success, setSuccess] = useState<string | undefined>("")
     const router = useRouter();
     const [isRedirecting, setIsRedirecting] = useState(false);
+    const [showConsent, setShowConsent] = useState(false);
+    const [pendingAction, setPendingAction] = useState<null | (() => void)>(null);
     const form = useForm<z.infer<typeof RegisterSchema>>({
         resolver: zodResolver(RegisterSchema),
         defaultValues: {
@@ -35,27 +39,34 @@ const RegisterFormContent = () => {
             name: ""
         }
     })
-    const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
-        setError("");
-        setSuccess("");
-        setIsRedirecting(false);
+    const handleConsent = (action: () => void) => {
+        toast.info("Merci d'accepter nos conditions pour continuer", { position: "bottom-right" });
+        setPendingAction(() => action);
+        setShowConsent(true);
+    };
 
-        startTransition(() => {
-            register(values)
-                .then((data) => {
-                    if (data.error) {
-                        setError(data.error);
-                        if (data.redirect) {
-                            setIsRedirecting(true);
-                            setTimeout(() => {
-                                router.push(data.redirect);
-                            }, 2000); // Redirect after 2 seconds
+    const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
+        handleConsent(() => {
+            setError("");
+            setSuccess("");
+            setIsRedirecting(false);
+            startTransition(() => {
+                register(values)
+                    .then((data) => {
+                        if (data.error) {
+                            setError(data.error);
+                            if (data.redirect) {
+                                setIsRedirecting(true);
+                                setTimeout(() => {
+                                    router.push(data.redirect);
+                                }, 2000);
+                            }
+                        } else if (data.success) {
+                            setSuccess(data.success);
                         }
-                    } else if (data.success) {
-                        setSuccess(data.success);
-                    }
-                })
-        })
+                    })
+            })
+        });
     };
 
     return (
@@ -117,7 +128,7 @@ const RegisterFormContent = () => {
             </div>
             <Button
                 onClick={() => {
-                    handleGoogleSignIn()
+                    handleConsent(() => handleGoogleSignIn())
                 }}
                 disabled={isPending || !!success || isRedirecting}
                 variant="outline"
@@ -128,14 +139,16 @@ const RegisterFormContent = () => {
                 Gmail
             </Button>
 
-            <div className="text-gray-500 text-center">
-                <p className="text-sm max-w-xs">
-                    By clicking continue, you agree to our{' '}
-                    <a href="#" className="text-gray-600 underline">Terms of Service</a>
-                    {' '}and{' '}
-                    <a href="#" className="text-gray-600 underline">Privacy Policy</a>.
-                </p>
-            </div>
+            <AuthConsentModal
+                open={showConsent}
+                onAccept={() => {
+                    setShowConsent(false);
+                    if (pendingAction) {
+                        pendingAction();
+                        setPendingAction(null);
+                    }
+                }}
+            />
         </div>
     )
 }

@@ -60,7 +60,7 @@ export function EditableUserName({ initialName }: EditableUserNameProps) {
     return (
         <div className="flex items-center justify-between">
             <div className="text-base">{name || "Add your name"}</div>
-            <Button variant="ghost" size="sm" className="text-[#8f939f] hover:text-[#01254b] p-0" onClick={handleEdit}>
+            <Button variant="ghost" size="sm" className="text-[#8f939f] hover:text-[#01254b] px-4" onClick={handleEdit}>
                 <PencilLine className="h-4 w-4 mr-1" />
                 Edit
             </Button>

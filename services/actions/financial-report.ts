@@ -2,8 +2,9 @@
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { TransactionCategory, TransactionFlow } from "@prisma/client"
+import { Transaction, TransactionCategory, TransactionFlow } from "@prisma/client"
 import { generateFinancialPredictions } from "./financial-predictions"
+import { detectAnomalies } from "@/lib/detectAnomalousTransactions"
 import Anthropic from "@anthropic-ai/sdk"
 
 // Add color mapping for transaction categories
@@ -389,7 +390,7 @@ export async function getUnusualTransactions(month?: number, year?: number) {
   const accountPks = bankAccounts.map(account => account.pk);
   
   // Get unusual transactions for these accounts
-  const unusualTransactions = await prisma.transaction.findMany({
+  let unusualTransactions = await prisma.transaction.findMany({
     where: {
       accountId: { in: accountPks },
       date: {
@@ -402,6 +403,52 @@ export async function getUnusualTransactions(month?: number, year?: number) {
       date: 'desc', // Most recent first
     },
   });
+
+  // Fallback: if none flagged yet, run AI detection once for this period and user, then re-query
+  if (unusualTransactions.length === 0) {
+    try {
+      const candidateTxs = await prisma.transaction.findMany({
+        where: {
+          accountId: { in: accountPks },
+          date: { gte: startDate, lte: endDate },
+        },
+        orderBy: { date: 'desc' },
+        take: 150,
+      });
+
+      if (candidateTxs.length > 0) {
+  const anomalies = await detectAnomalies(candidateTxs as Transaction[]);
+        if (Array.isArray(anomalies) && anomalies.length > 0) {
+          for (const a of anomalies) {
+            try {
+              await prisma.transaction.update({
+                where: { pk: a.id },
+                data: {
+                  isUnusual: a.isUnusual ?? true,
+                  riskLevel: a.riskLevel ?? 'MEDIUM',
+                  anomalyReason: a.reason ?? 'Identified as unusual by AI analysis',
+                  recommendedAmount: a.recommendedAmount ?? null,
+                },
+              });
+            } catch (e) {
+              console.error('Failed to update transaction anomaly', a.id, e);
+            }
+          }
+          // Re-query after updates
+          unusualTransactions = await prisma.transaction.findMany({
+            where: {
+              accountId: { in: accountPks },
+              date: { gte: startDate, lte: endDate },
+              isUnusual: true,
+            },
+            orderBy: { date: 'desc' },
+          });
+        }
+      }
+    } catch (err) {
+      console.error('AI anomaly detection fallback failed:', err);
+    }
+  }
 
   // Format the transaction data
   const formattedTransactions = unusualTransactions.map(transaction => {

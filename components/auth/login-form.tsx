@@ -10,6 +10,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { LoginSchema } from "@/schemas";
 import { Input } from "@/components/ui/input";
 import { Button } from "../ui/button";
+import { AuthConsentModal } from "@/components/auth/AuthConsentModal";
+import { toast } from "sonner";
 import { handleGoogleSignIn, login } from "@/services/actions/login";
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
@@ -32,52 +34,68 @@ const RegisterFormContent = () => {
     // const router = useRouter();
     const [isRedirecting, setIsRedirecting] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    const [showConsent, setShowConsent] = useState(false);
+    const [pendingAction, setPendingAction] = useState<null | (() => void)>(null);
     const form = useForm<z.infer<typeof LoginSchema>>({
         resolver: zodResolver(LoginSchema),
         defaultValues: {
             email: "",
         }
     })
-    const onSubmit = async (values: z.infer<typeof LoginSchema>) => {
-        setError("");
-        setSuccess("");
-        setIsRedirecting(false);
 
-        startTransition(() => {
-            login(values)
-                .then((data) => {
-                    if (data.error) {
-                        setError(data.error);
-                        if (data.redirect) {
-                            setIsRedirecting(true);
-                            // setTimeout(() => {
-                            //     router.push(data.redirect);
-                            // }, 2000); // Redirect after 2 seconds
+    const handleConsent = (action: () => void) => {
+        toast.info("Merci d'accepter nos conditions pour continuer", { position: "bottom-right" });
+        setPendingAction(() => action);
+        setShowConsent(true);
+    };
+
+    const onSubmit = async (values: z.infer<typeof LoginSchema>) => {
+        handleConsent(() => {
+            setError("");
+            setSuccess("");
+            setIsRedirecting(false);
+            startTransition(() => {
+                login(values)
+                    .then((data) => {
+                        if (data.error) {
+                            setError(data.error);
+                            if (data.redirect) {
+                                setIsRedirecting(true);
+                            }
+                        } else if (data.success) {
+                            setSuccess(data.success);
                         }
-                    } else if (data.success) {
-                        setSuccess(data.success);
-                        // setTimeout(() => {
-                        //     window.location.reload();
-                        // }, 3000);
-                    }
-                })
-        })
-    }
+                    })
+            })
+        });
+    };
 
     const onGoogleClick = async () => {
-        try {
-            setIsGoogleLoading(true);
-            setError("");
-            await handleGoogleSignIn();
-        } catch (error) {
-            console.error("Error during Google sign in:", error);
-            setError("An error occurred with Google sign in");
-        } finally {
-            setIsGoogleLoading(false);
-        }
+        handleConsent(async () => {
+            try {
+                setIsGoogleLoading(true);
+                setError("");
+                await handleGoogleSignIn();
+            } catch (error) {
+                console.error("Error during Google sign in:", error);
+                setError("An error occurred with Google sign in");
+            } finally {
+                setIsGoogleLoading(false);
+            }
+        });
     };
     return (
         <div className="w-full flex flex-col items-center space-y-2">
+            <AuthConsentModal
+                open={showConsent}
+                onAccept={() => {
+                    setShowConsent(false);
+                    if (pendingAction) {
+                        pendingAction();
+                        setPendingAction(null);
+                    }
+                }}
+            />
             <div className="flex flex-col items-center mb-2 space-y-1">
                 <h1 className="text-3xl font-bold mb-4">Login To Your Account</h1>
                 <p className="text-gray-500">Enter your email below to login</p>

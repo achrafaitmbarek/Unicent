@@ -1,3 +1,4 @@
+import { DeleteAccountModal } from "@/components/dashboard/delete-account-modal"
 import Image from "next/image"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
@@ -9,8 +10,10 @@ import avatar from "@/assets/avatars/Erick.png"
 import { EditableUserName } from "@/components/dashboard/editable-name"
 import { InsightTypeSelector } from "@/components/dashboard/insight-type-selector"
 import { ReportTypeSelector } from "@/components/dashboard/report-type-selector"
-import { Sparkles, Mail, CalendarDays, Crown, BarChart3 } from "lucide-react"
+import { Sparkles, Mail, CalendarDays, Crown, BarChart3, Activity, Wand2, Banknote, LayoutDashboard } from "lucide-react"
 import Link from "next/link"
+import { getUserFinancialTips } from "@/services/actions/financial-tips"
+import { TipType } from "@prisma/client"
 
 export default async function Profile() {
     const session = await auth()
@@ -25,6 +28,35 @@ export default async function Profile() {
 
     if (!user) {
         return <div>User not found</div>
+    }
+
+    // Stats and quick data
+    const [connectionsCount, accountsAgg, maxSync, unusualCount] = await Promise.all([
+        prisma.bankConnection.count({ where: { userId: user.id } }),
+        prisma.bankAccount.aggregate({
+            _sum: { balance: true },
+            where: { connection: { userId: user.id } },
+        }),
+        prisma.bankAccount.aggregate({ _max: { lastSyncedTransactionDate: true }, where: { connection: { userId: user.id } } }),
+        // Unusual in current month
+        (async () => {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), now.getMonth(), 1);
+            return prisma.transaction.count({
+                where: {
+                    account: { connection: { userId: user.id } },
+                    isUnusual: true,
+                    date: { gte: start },
+                },
+            })
+        })(),
+    ])
+
+    const totalBalance = accountsAgg._sum.balance ?? 0
+    const tips = await getUserFinancialTips(TipType.DAILY_INSIGHT)
+
+    function fmt(n: number) {
+        try { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n) } catch { return `$${n.toFixed(0)}` }
     }
 
     return (
@@ -68,6 +100,52 @@ export default async function Profile() {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Quick stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
+                <Card>
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div>
+                            <div className="text-sm text-muted-foreground">Total Balance</div>
+                            <div className="text-xl font-semibold">
+                                <span className="inline-block blur-sm hover:blur-none transition duration-200 cursor-default select-none">
+                                    {fmt(totalBalance)}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="p-2 rounded-md bg-emerald-50 text-emerald-700"><Banknote className="h-5 w-5" /></div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div>
+                            <div className="text-sm text-muted-foreground">Connections</div>
+                            <div className="text-xl font-semibold">{connectionsCount}</div>
+                        </div>
+                        <div className="p-2 rounded-md bg-blue-50 text-blue-700"><LayoutDashboard className="h-5 w-5" /></div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div>
+                            <div className="text-sm text-muted-foreground">Unusual this month</div>
+                            <div className="text-xl font-semibold">{unusualCount}</div>
+                        </div>
+                        <div className="p-2 rounded-md bg-amber-50 text-amber-700"><Activity className="h-5 w-5" /></div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div>
+                            <div className="text-sm text-muted-foreground">Last sync</div>
+                            <div className="text-xl font-semibold">
+                                {maxSync._max.lastSyncedTransactionDate ? new Date(maxSync._max.lastSyncedTransactionDate).toLocaleDateString() : '—'}
+                            </div>
+                        </div>
+                        <div className="p-2 rounded-md bg-indigo-50 text-indigo-700"><BarChart3 className="h-5 w-5" /></div>
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Content */}
@@ -140,6 +218,41 @@ export default async function Profile() {
                 </Card>
             </div>
 
+            {/* Copilot tip + Shortcuts */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-2">
+                <Card className="lg:col-span-2">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="flex items-center gap-2"><Wand2 className="h-5 w-5 text-[#01162c]" /> Copilot Tips</CardTitle>
+                        <CardDescription>Personalized, quick wins to try this week</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {tips && tips.length > 0 ? (
+                            <div className="grid sm:grid-cols-2 gap-4">
+                                {tips.slice(0, 2).map((t, i) => (
+                                    <div key={i} className="rounded-lg border p-4 bg-white">
+                                        <div className="text-sm text-muted-foreground mb-1">{t.title}</div>
+                                        <div className="text-sm">{t.description}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-sm text-muted-foreground">No tips yet.</div>
+                        )}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle>Quick Actions</CardTitle>
+                        <CardDescription>Jump to popular tools</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-2">
+                        <Link href="/dashboard/magic"><Button className="w-full justify-start gap-2"><Wand2 className="h-4 w-4" /> Open Magic</Button></Link>
+                        <Link href="/dashboard/ai-insights/financial-watch"><Button variant="outline" className="w-full justify-start gap-2"><Activity className="h-4 w-4" /> Financial Watch</Button></Link>
+                        <Link href="/dashboard/reports"><Button variant="secondary" className="w-full justify-start gap-2"><BarChart3 className="h-4 w-4" /> Reports</Button></Link>
+                    </CardContent>
+                </Card>
+            </div>
+
             {/* Mobile upgrade/premium state */}
             <div className="sm:hidden mt-6 space-y-3">
                 <Link href="/dashboard/reports">
@@ -153,6 +266,9 @@ export default async function Profile() {
                     <div className="bg-amber-50 text-amber-800 border border-amber-200 px-4 py-2 rounded-md text-sm text-center">Premium benefits active</div>
                 )}
             </div>
+
+            {/* Danger zone: Delete Account */}
+            <DeleteAccountModal />
         </div>
     );
 }
